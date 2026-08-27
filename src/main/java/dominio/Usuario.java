@@ -1,0 +1,25 @@
+package dominio;
+
+public abstract class Usuario {
+    protected String id;
+    protected String clave;
+
+    protected Usuario() {
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getClave() {
+        return clave;
+    }
+
+    public void setClave(String clave) {
+        this.clave = clave;
+    }
+}
