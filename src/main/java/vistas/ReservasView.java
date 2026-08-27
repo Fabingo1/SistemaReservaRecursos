@@ -1,7 +1,6 @@
-package presentation;
+package vistas;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
