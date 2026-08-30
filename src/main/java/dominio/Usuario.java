@@ -1,6 +1,7 @@
 package dominio;
 
 public abstract class Usuario {
+
     protected String id;
     protected String clave;
 
@@ -21,5 +22,12 @@ public abstract class Usuario {
 
     public void setClave(String clave) {
         this.clave = clave;
+    }
+
+    public void cambiarClave(String nuevaClave) {
+        if (nuevaClave == null || nuevaClave.isBlank()) {
+            throw new IllegalArgumentException("La clave no puede estar vacía.");
+        }
+        this.clave = nuevaClave;
     }
 }
