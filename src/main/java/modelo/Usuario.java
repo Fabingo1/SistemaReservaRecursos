@@ -1,4 +1,4 @@
-package dominio;
+package modelo;
 
 public abstract class Usuario {
 

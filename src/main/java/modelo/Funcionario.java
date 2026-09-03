@@ -1,4 +1,4 @@
-package dominio;
+package modelo;
 
 public class Funcionario extends Usuario {
     private String nombre;
