@@ -29,12 +29,19 @@
             <version>3.0.8</version>
         </dependency>
 
-        <!-- JUnit Jupiter: pruebas unitarias e integración -->
+        <!-- JUnit Jupiter para pruebas unitarias e integración -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.14.4</version>
             <scope>test</scope>
+        </dependency>
+
+        <!-- Xchart para Graficos de barras -->
+        <dependency>
+            <groupId>org.knowm.xchart</groupId>
+            <artifactId>xchart</artifactId>
+            <version>4.0.4</version>
         </dependency>
     </dependencies>
 
