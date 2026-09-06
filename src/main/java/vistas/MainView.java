@@ -1,7 +1,8 @@
-package Vistas;
+package vistas;
 
 import modelo.Administrador;
 import modelo.Usuario;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,7 +28,7 @@ public class MainView extends JFrame {
             tabs.addTab("Reservas", crearPanelVacio("Reservas"));
         }
 
-        tabs.addTab("Calendarización", crearPanelVacio("Calendarización"));
+        tabs.addTab("Calendarización", new CalendarizacionView());
         tabs.addTab("Actividades", crearPanelVacio("Actividades"));
         tabs.addTab("Estadísticas", crearPanelVacio("Estadísticas"));
 
