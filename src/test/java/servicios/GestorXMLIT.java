@@ -11,7 +11,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class GestorXMLIT {
+class  GestorXMLIT {
 
     @Test
     void guardarYCargarCategorias_devuelveLosMismosDatos(@TempDir Path tempDir) throws IOException {
