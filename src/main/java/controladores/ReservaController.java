@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 public class ReservaController {
+    private static final String RUTA_CATEGORIAS = "data/categorias.xml";
     private static final String RUTA_RESERVAS = "data/reservas.xml";
     private static final String RUTA_RECURSOS = "data/recursos.xml";
 
@@ -18,6 +19,9 @@ public class ReservaController {
         this.gestorXML = new GestorXML();
     }
 
+    public List<Categoria> obtenerCategoriasDisponibles() throws IOException {
+        return gestorXML.cargarDatos(RUTA_CATEGORIAS);
+    }
 
     public List<Reserva> obtenerReservasDe(Funcionario funcionario) throws IOException {
         List<Reserva> todas = gestorXML.cargarDatos(RUTA_RESERVAS);
