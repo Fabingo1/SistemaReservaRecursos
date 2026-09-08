@@ -20,8 +20,8 @@ public class ReservasView extends JFrame {
         // Crear los paneles correspondientes a la imagen
         JPanel panelReservas = crearPanelReservas();
         JPanel panelCalendarizacion = new CalendarizacionView();
-        JPanel panelActividades = crearPanelVacio("Actividades");
-        JPanel panelEstadisticas = crearPanelVacio("Estadísticas");
+        JPanel panelActividades = new ActividadesView();
+        JPanel panelEstadisticas = new EstadisticasView();
 
         // Agregar las pestañas
         tabs.addTab("Reservas", panelReservas);
