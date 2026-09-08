@@ -1,8 +1,6 @@
-package vistas;
+package Vistas;
 
 import controladores.LoginController;
-import modelo.Administrador;
-import modelo.Funcionario;
 import modelo.Usuario;
 
 import javax.swing.*;
@@ -68,15 +66,11 @@ public class LoginView extends JFrame {
                 return;
             }
 
-            if (usuario instanceof Funcionario) {
-                this.dispose();
-                SwingUtilities.invokeLater(() -> {
-                    ReservasView reservas = new ReservasView();
-                    reservas.setVisible(true);
-                });
-            } else if (usuario instanceof Administrador) {
-                JOptionPane.showMessageDialog(this, "Login OK como Administrador (vista pendiente).");
-            }
+            this.dispose();
+            SwingUtilities.invokeLater(() -> {
+                MainView main = new MainView(usuario);
+                main.setVisible(true);
+            });
 
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Error al leer datos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
