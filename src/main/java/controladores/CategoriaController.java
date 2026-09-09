@@ -16,19 +16,30 @@ import java.util.List;
  */
 public class CategoriaController {
 
-    private static final String RUTA_CATEGORIAS = "data/categorias.xml";
+    private static final String RUTA_CATEGORIAS_POR_DEFECTO = "data/categorias.xml";
 
+    private final String rutaCategorias;
     private final GestorXML gestorXML;
     private final PDFService pdfService;
 
     public CategoriaController() {
+        this(RUTA_CATEGORIAS_POR_DEFECTO);
+    }
+
+    /**
+     * Permite inyectar una ruta distinta a la de producción. Pensado para
+     * pruebas unitarias con @TempDir, así no se escribe sobre el
+     * data/categorias.xml real del proyecto al correr los tests.
+     */
+    public CategoriaController(String rutaCategorias) {
+        this.rutaCategorias = rutaCategorias;
         this.gestorXML = new GestorXML();
         this.pdfService = new PDFService();
     }
 
     /** Consulta: todas las categorías registradas. */
     public List<Categoria> listar() throws IOException {
-        return gestorXML.cargarDatos(RUTA_CATEGORIAS);
+        return gestorXML.cargarDatos(rutaCategorias);
     }
 
     /**
@@ -73,7 +84,7 @@ public class CategoriaController {
         nueva.setDescripcion(descripcion.trim());
 
         categorias.add(nueva);
-        gestorXML.guardarDatos(categorias, RUTA_CATEGORIAS);
+        gestorXML.guardarDatos(categorias, rutaCategorias);
         return nueva;
     }
 
@@ -95,7 +106,7 @@ public class CategoriaController {
             throw new IllegalArgumentException("No existe una categoría con id " + id);
         }
 
-        gestorXML.guardarDatos(categorias, RUTA_CATEGORIAS);
+        gestorXML.guardarDatos(categorias, rutaCategorias);
     }
 
     /** Borrado por id. */
@@ -107,7 +118,7 @@ public class CategoriaController {
             throw new IllegalArgumentException("No existe una categoría con id " + id);
         }
 
-        gestorXML.guardarDatos(categorias, RUTA_CATEGORIAS);
+        gestorXML.guardarDatos(categorias, rutaCategorias);
     }
 
     /**
