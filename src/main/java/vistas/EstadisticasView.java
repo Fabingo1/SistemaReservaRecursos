@@ -15,8 +15,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Vista de la funcionalidad 8: "Estadísticas". Tiene dos pestañas
- * independientes, tal como lo describe el enunciado:
+ * Vista de la funcionalidad 8: "Estadísticas". Muestra, lado a lado (tal
+ * como en el ejemplo de pantalla del enunciado), dos secciones
+ * independientes:
  *  - Recursos: cantidad de reservas por categoría de recurso en un período.
  *  - Actividades: cantidad de actividades programadas por semana en un período.
  *
@@ -48,12 +49,13 @@ public class EstadisticasView extends JPanel {
         this.controller = new EstadisticasController();
         this.pdfService = new PDFService();
 
-        setLayout(new BorderLayout());
+        // Layout de dos columnas (Recursos | Actividades) visibles a la vez,
+        // igual que en el ejemplo de pantalla del enunciado, en vez de pestañas.
+        setLayout(new GridLayout(1, 2, 10, 0));
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("Recursos", crearPanelRecursos());
-        tabs.addTab("Actividades", crearPanelActividadesSemana());
-        add(tabs, BorderLayout.CENTER);
+        add(crearPanelRecursos());
+        add(crearPanelActividadesSemana());
     }
 
     // ---------------------------------------------------------------
@@ -62,7 +64,7 @@ public class EstadisticasView extends JPanel {
 
     private JPanel crearPanelRecursos() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBorder(BorderFactory.createTitledBorder("Recursos"));
 
         JPanel controles = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         Calendar haceUnMes = Calendar.getInstance();
@@ -155,7 +157,7 @@ public class EstadisticasView extends JPanel {
 
     private JPanel crearPanelActividadesSemana() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBorder(BorderFactory.createTitledBorder("Actividades"));
 
         JPanel controles = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         Calendar haceDosMeses = Calendar.getInstance();

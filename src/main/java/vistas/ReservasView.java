@@ -35,7 +35,7 @@ public class ReservasView extends JFrame {
     // =====================================================
     // TAB 1: RESERVAS (Pantalla 1 del PDF)
     // =====================================================
-    private JPanel crearPanelReservas() {
+    public static JPanel crearPanelReservas() {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 

@@ -25,12 +25,14 @@ public class MainView extends JFrame {
             tabs.addTab("Categorías", crearPanelVacio("Categorías"));
             tabs.addTab("Recursos", crearPanelVacio("Recursos"));
         } else {
-            tabs.addTab("Reservas", crearPanelVacio("Reservas"));
+            // Misma maqueta visual que ya existia en ReservasView (aun sin
+            // logica real; pendiente de Persona A), reutilizada tal cual.
+            tabs.addTab("Reservas", ReservasView.crearPanelReservas());
         }
 
         tabs.addTab("Calendarización", new CalendarizacionView());
-        tabs.addTab("Actividades", crearPanelVacio("Actividades"));
-        tabs.addTab("Estadísticas", crearPanelVacio("Estadísticas"));
+        tabs.addTab("Actividades", new ActividadesView());
+        tabs.addTab("Estadísticas", new EstadisticasView());
 
         add(tabs);
     }

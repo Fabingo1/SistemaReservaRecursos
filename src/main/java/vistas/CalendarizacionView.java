@@ -4,21 +4,26 @@ import controladores.CalendarizacionController;
 import modelo.Categoria;
 import modelo.Recurso;
 import modelo.Reserva;
+import servicios.PDFService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class CalendarizacionView extends JPanel {
 
     private final CalendarizacionController controller;
+    private final PDFService pdfService;
 
     private JComboBox<Categoria> cbCategoria;
     private JTextField txtFecha;
     private JButton btnBuscar;
+    private JButton btnPdf;
     private JTable tablaMatriz;
     private DefaultTableModel modeloTabla;
 
@@ -27,6 +32,7 @@ public class CalendarizacionView extends JPanel {
 
     public CalendarizacionView() {
         controller = new CalendarizacionController();
+        pdfService = new PDFService();
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -55,6 +61,10 @@ public class CalendarizacionView extends JPanel {
         btnBuscar = new JButton("Buscar");
         panel.add(btnBuscar);
         btnBuscar.addActionListener(e -> generarMatriz());
+
+        btnPdf = new JButton("Generar PDF");
+        panel.add(btnPdf);
+        btnPdf.addActionListener(e -> generarPdf());
 
         return panel;
     }
@@ -113,6 +123,45 @@ public class CalendarizacionView extends JPanel {
             JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Use yyyy-MM-dd.");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+        }
+    }
+
+    private void generarPdf() {
+        if (modeloTabla.getColumnCount() == 0 || modeloTabla.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Primero presione 'Buscar' para cargar la matriz.",
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            int numColumnas = modeloTabla.getColumnCount();
+            String[] columnas = new String[numColumnas];
+            for (int c = 0; c < numColumnas; c++) {
+                columnas[c] = modeloTabla.getColumnName(c);
+            }
+
+            List<Object[]> filas = new ArrayList<>();
+            for (int f = 0; f < modeloTabla.getRowCount(); f++) {
+                Object[] fila = new Object[numColumnas];
+                for (int c = 0; c < numColumnas; c++) {
+                    Object valor = modeloTabla.getValueAt(f, c);
+                    fila[c] = valor == null ? "" : valor.toString();
+                }
+                filas.add(fila);
+            }
+
+            Categoria categoria = (Categoria) cbCategoria.getSelectedItem();
+            String titulo = "Calendarizacion de recursos - " + txtFecha.getText().trim()
+                    + (categoria != null ? " - " + categoria.getDescripcion() : "");
+
+            String ruta = "data/reporte_calendarizacion_" + System.currentTimeMillis() + ".pdf";
+            pdfService.generarReporte(titulo, columnas, filas, ruta);
+
+            JOptionPane.showMessageDialog(this, "Reporte generado en: " + ruta,
+                    "PDF generado", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error al generar el PDF: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

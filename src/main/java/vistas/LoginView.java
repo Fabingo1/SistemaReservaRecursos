@@ -1,8 +1,6 @@
 package vistas;
 
 import controladores.LoginController;
-import modelo.Administrador;
-import modelo.Funcionario;
 import modelo.Usuario;
 
 import javax.swing.*;
@@ -19,7 +17,7 @@ public class LoginView extends JFrame {
         controller = new LoginController();
 
         setTitle("Sistema de Reserva de Recursos - Login");
-        setSize(350, 200);
+        setSize(370, 220);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -43,10 +41,20 @@ public class LoginView extends JFrame {
         panel.add(txtClave, gbc);
 
         JButton btnLogin = new JButton("Ingresar");
+        JButton btnCancelar = new JButton("Cancelar");
+        JButton btnCambiar = new JButton("Cambiar clave");
+
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        panelBotones.add(btnLogin);
+        panelBotones.add(btnCancelar);
+        panelBotones.add(btnCambiar);
+
         gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
-        panel.add(btnLogin, gbc);
+        panel.add(panelBotones, gbc);
 
         btnLogin.addActionListener(e -> intentarLogin());
+        btnCancelar.addActionListener(e -> System.exit(0));
+        btnCambiar.addActionListener(e -> abrirCambiarClave());
 
         add(panel);
     }
@@ -68,19 +76,28 @@ public class LoginView extends JFrame {
                 return;
             }
 
-            if (usuario instanceof Funcionario) {
-                this.dispose();
-                SwingUtilities.invokeLater(() -> {
-                    ReservasView reservas = new ReservasView();
-                    reservas.setVisible(true);
-                });
-            } else if (usuario instanceof Administrador) {
-                JOptionPane.showMessageDialog(this, "Login OK como Administrador (vista pendiente).");
-            }
+            // Tanto Administrador como Funcionario entran a la misma ventana
+            // principal (MainView), que ajusta sus pestañas según el rol.
+            this.dispose();
+            SwingUtilities.invokeLater(() -> {
+                MainView main = new MainView(usuario);
+                main.setVisible(true);
+            });
 
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Error al leer datos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void abrirCambiarClave() {
+        String id = txtId.getText().trim();
+        if (id.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Escriba su id antes de cambiar la clave.",
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        CambiarClaveDialog dialog = new CambiarClaveDialog(this, controller, id);
+        dialog.setVisible(true);
     }
 
     public static void main(String[] args) {

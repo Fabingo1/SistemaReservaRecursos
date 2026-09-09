@@ -30,6 +30,10 @@ public class ActividadesView extends JPanel {
             {"Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"};
     private static final SimpleDateFormat FORMATO_ENCABEZADO = new SimpleDateFormat("dd/MM");
 
+    // Mismo horario de oficina que CalendarizacionView, para consistencia visual.
+    private static final int HORA_INICIO = 7;
+    private static final int HORA_FIN = 18; // exclusivo
+
     private final ActividadesController controller;
     private final PDFService pdfService;
 
@@ -121,7 +125,7 @@ public class ActividadesView extends JPanel {
         }
 
         modeloTabla.setRowCount(0);
-        for (int hora = 0; hora < 24; hora++) {
+        for (int hora = HORA_INICIO; hora < HORA_FIN; hora++) {
             Object[] fila = new Object[8];
             fila[0] = String.format("%02d:00", hora);
             for (int d = 0; d < 7; d++) {
