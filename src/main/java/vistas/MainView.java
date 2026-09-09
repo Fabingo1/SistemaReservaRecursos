@@ -1,8 +1,8 @@
 package vistas;
 
 import modelo.Administrador;
+import modelo.Funcionario;
 import modelo.Usuario;
-
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,9 +25,8 @@ public class MainView extends JFrame {
             tabs.addTab("Categorías", crearPanelVacio("Categorías"));
             tabs.addTab("Recursos", crearPanelVacio("Recursos"));
         } else {
-            // Misma maqueta visual que ya existia en ReservasView (aun sin
-            // logica real; pendiente de Persona A), reutilizada tal cual.
-            tabs.addTab("Reservas", ReservasView.crearPanelReservas());
+            // Reservas real, hecha por Persona A.
+            tabs.addTab("Reservas", new ReservaView((Funcionario) usuario));
         }
 
         tabs.addTab("Calendarización", new CalendarizacionView());
