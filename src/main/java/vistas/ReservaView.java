@@ -231,7 +231,7 @@ public class ReservaView extends JPanel implements Refrescable {
     private void extraerConIA() {
         String frase = txtFrase.getText().trim();
         if (frase.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Escribí una frase describiendo la reserva primero.");
+            JOptionPane.showMessageDialog(this, "Escriba una frase describiendo la reserva primero.");
             return;
         }
 

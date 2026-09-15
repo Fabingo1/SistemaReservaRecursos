@@ -42,7 +42,7 @@ public class LLMService {
     public Map<String, String> extraerDatos(String frase) throws IOException, InterruptedException {
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException(
-                    "No se encontró la variable de entorno GEMINI_API_KEY. Configurala antes de usar esta funcionalidad.");
+                    "No se encontró la variable de entorno GEMINI_API_KEY. Configuralo antes de usar esta funcionalidad.");
         }
 
         JSONObject cuerpo = construirCuerpoRequest(frase);
