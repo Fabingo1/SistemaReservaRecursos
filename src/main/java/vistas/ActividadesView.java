@@ -1,4 +1,4 @@
-package vistas;
+package Vistas;
 
 import controladores.ActividadesController;
 import modelo.Reserva;

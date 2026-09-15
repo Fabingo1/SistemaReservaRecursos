@@ -1,4 +1,4 @@
-package vistas;
+package Vistas;
 
 /**
  * Vistas que saben recargar sus datos desde los XML. MainView llama a
