@@ -1,21 +1,24 @@
-package vistas;
+package Vistas;
 
 import controladores.ReservaController;
 import controladores.ResultadoReserva;
 import modelo.Categoria;
 import modelo.Funcionario;
 import modelo.Reserva;
+import servicios.LLMService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Vista de la funcionalidad 2 (Reservas), solo para funcionarios.
@@ -68,8 +71,6 @@ public class ReservaView extends JPanel implements Refrescable {
         gbc.gridx = 1; gbc.gridwidth = 2; gbc.weightx = 1;
         panel.add(txtFrase, gbc);
         btnExtraer = new JButton("Extraer (IA)");
-        btnExtraer.setEnabled(false);
-        btnExtraer.setToolTipText("Se habilita cuando LLMService esté conectado");
         gbc.gridx = 3; gbc.gridwidth = 1; gbc.weightx = 0;
         panel.add(btnExtraer, gbc);
 
@@ -123,6 +124,7 @@ public class ReservaView extends JPanel implements Refrescable {
 
         btnReservar.addActionListener(e -> reservar());
         btnCancelar.addActionListener(e -> cancelarSeleccionada());
+        btnExtraer.addActionListener(e -> extraerConIA());
         // "Limpiar" deja el formulario en blanco pero NO borra lo del intento
         // fallido automáticamente: así el funcionario puede corregir y reintentar.
         btnLimpiar.addActionListener(e -> limpiarFormulario());
@@ -224,6 +226,83 @@ public class ReservaView extends JPanel implements Refrescable {
             JOptionPane.showMessageDialog(this, "Error al cancelar: " + e.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void extraerConIA() {
+        String frase = txtFrase.getText().trim();
+        if (frase.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Escribí una frase describiendo la reserva primero.");
+            return;
+        }
+
+        btnExtraer.setEnabled(false);
+        btnExtraer.setText("Extrayendo...");
+
+        new SwingWorker<Map<String, String>, Void>() {
+            @Override
+            protected Map<String, String> doInBackground() throws Exception {
+                LLMService llmService = new LLMService();
+                return llmService.extraerDatos(frase);
+            }
+
+            @Override
+            protected void done() {
+                btnExtraer.setEnabled(true);
+                btnExtraer.setText("Extraer (IA)");
+                try {
+                    aplicarDatosExtraidos(get());
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(ReservaView.this,
+                            "No se pudo extraer la información: " + ex.getCause().getMessage());
+                }
+            }
+        }.execute();
+    }
+
+    private void aplicarDatosExtraidos(Map<String, String> datos) {
+        if (!datos.get("actividad").isEmpty()) {
+            txtActividad.setText(datos.get("actividad"));
+        }
+
+        SimpleDateFormat sdfFecha = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat sdfHora = new SimpleDateFormat("HH:mm");
+
+        try {
+            if (!datos.get("fecha").isEmpty()) {
+                spnFecha.setValue(sdfFecha.parse(datos.get("fecha")));
+            }
+            if (!datos.get("horaInicio").isEmpty()) {
+                spnHoraInicio.setValue(sdfHora.parse(datos.get("horaInicio")));
+            }
+            if (!datos.get("horaFin").isEmpty()) {
+                spnHoraFin.setValue(sdfHora.parse(datos.get("horaFin")));
+            }
+        } catch (ParseException ex) {
+            JOptionPane.showMessageDialog(this, "La IA devolvió una fecha u hora en formato inesperado.");
+        }
+
+        seleccionarCategoriasPorTexto(datos.get("categorias"));
+    }
+
+    private void seleccionarCategoriasPorTexto(String categoriasTexto) {
+        if (categoriasTexto == null || categoriasTexto.isBlank()) {
+            return;
+        }
+
+        String[] palabrasClave = categoriasTexto.toLowerCase().split(",\\s*");
+        List<Integer> indicesAMarcar = new ArrayList<>();
+
+        for (int i = 0; i < modeloCategorias.size(); i++) {
+            String descripcion = modeloCategorias.get(i).getDescripcion().toLowerCase();
+            for (String palabra : palabrasClave) {
+                if (descripcion.contains(palabra.trim())) {
+                    indicesAMarcar.add(i);
+                    break;
+                }
+            }
+        }
+
+        listCategorias.setSelectedIndices(indicesAMarcar.stream().mapToInt(Integer::intValue).toArray());
     }
 
     private void generarPdf() {
