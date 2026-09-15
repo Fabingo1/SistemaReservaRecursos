@@ -213,6 +213,7 @@ public class CalendarizacionView extends JPanel implements Refrescable {
     /** Pinta de color las celdas reservadas para que se distingan de las libres. */
     private static class CeldaReservaRenderer extends DefaultTableCellRenderer {
         private static final Color COLOR_RESERVADO = new Color(255, 224, 178);
+        private static final Color TEXTO_RESERVADO = Color.BLACK;
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
@@ -220,7 +221,13 @@ public class CalendarizacionView extends JPanel implements Refrescable {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             if (!isSelected) {
                 boolean ocupada = column > 0 && value != null && !value.toString().isEmpty();
-                c.setBackground(ocupada ? COLOR_RESERVADO : Color.WHITE);
+                if (ocupada) {
+                    c.setBackground(COLOR_RESERVADO);
+                    c.setForeground(TEXTO_RESERVADO);
+                } else {
+                    c.setBackground(table.getBackground());
+                    c.setForeground(table.getForeground());
+                }
             }
             if (value != null) {
                 setToolTipText(value.toString().isEmpty() ? null : value.toString());

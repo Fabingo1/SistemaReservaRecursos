@@ -279,7 +279,6 @@ public class EstadisticasView extends JPanel {
 
         BarChartPanel() {
             setPreferredSize(new Dimension(420, 300));
-            setBackground(Color.WHITE);
         }
 
         void setDatos(Map<String, Integer> datos) {
@@ -300,6 +299,9 @@ public class EstadisticasView extends JPanel {
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+            Color colorTexto = UIManager.getColor("Label.foreground");
+            Color colorEjes = UIManager.getColor("Label.disabledForeground");
+
             int ancho = getWidth();
             int alto = getHeight();
             int margenInferior = 70;
@@ -307,6 +309,7 @@ public class EstadisticasView extends JPanel {
             int margenLateral = 20;
 
             if (datos == null || datos.isEmpty()) {
+                g2.setColor(colorTexto);
                 g2.drawString("Sin datos para el período seleccionado.", margenLateral, alto / 2);
                 return;
             }
@@ -316,13 +319,10 @@ public class EstadisticasView extends JPanel {
                 max = Math.max(max, v);
             }
 
-            // Cada barra ocupa un "espacio" proporcional al ancho disponible,
-            // así nunca se salen del panel aunque haya muchas semanas.
             int numBarras = datos.size();
             double espacio = (ancho - 2.0 * margenLateral) / numBarras;
             int anchoBarra = (int) Math.max(4, espacio * 0.65);
             int alturaDisponible = alto - margenSuperior - margenInferior;
-            // Si las barras son angostas, se muestra solo una de cada N etiquetas
             int saltoEtiquetas = (int) Math.max(1, Math.ceil(18 / espacio));
 
             int i = 0;
@@ -335,13 +335,14 @@ public class EstadisticasView extends JPanel {
                 g2.setColor(new Color(66, 133, 200));
                 g2.fillRect(x, y, anchoBarra, alturaBarra);
 
-                g2.setColor(Color.BLACK);
+                g2.setColor(colorTexto);
                 String textoValor = String.valueOf(valor);
                 int anchoValor = g2.getFontMetrics().stringWidth(textoValor);
                 g2.drawString(textoValor, x + (anchoBarra - anchoValor) / 2, Math.max(12, y - 4));
 
                 if (i % saltoEtiquetas == 0) {
                     Graphics2D g2r = (Graphics2D) g2.create();
+                    g2r.setColor(colorTexto);
                     g2r.translate(x + anchoBarra / 2.0 - 3, alto - margenInferior + 12);
                     g2r.rotate(Math.toRadians(40));
                     g2r.drawString(etiquetaCorta(entry.getKey()), 0, 0);
@@ -350,7 +351,7 @@ public class EstadisticasView extends JPanel {
                 i++;
             }
 
-            g2.setColor(Color.GRAY);
+            g2.setColor(colorEjes);
             g2.drawLine(margenLateral, alto - margenInferior, ancho - margenLateral, alto - margenInferior);
         }
     }
