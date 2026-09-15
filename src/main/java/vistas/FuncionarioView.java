@@ -1,4 +1,4 @@
-package Vistas;
+package vistas;
 
 import controladores.FuncionarioController;
 import modelo.Funcionario;

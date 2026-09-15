@@ -1,4 +1,4 @@
-package Vistas;
+package vistas;
 
 import controladores.CalendarizacionController;
 import modelo.Categoria;
