@@ -4,42 +4,54 @@ import controladores.CalendarizacionController;
 import modelo.Categoria;
 import modelo.Recurso;
 import modelo.Reserva;
-import servicios.PDFService;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class CalendarizacionView extends JPanel {
+/**
+ * Vista de la funcionalidad 6: "Visualización de calendarización de
+ * recursos". Filas = horas del día (las 24), columnas = recursos de la
+ * categoría seleccionada. Disponible para administrador y funcionario.
+ */
+public class CalendarizacionView extends JPanel implements Refrescable {
+
+    // El enunciado pide "cada hora del día": se muestran las 24 horas.
+    private static final int HORA_INICIO = 0;
+    private static final int HORA_FIN = 24; // exclusivo
+    private static final int HORA_SCROLL_INICIAL = 7;
 
     private final CalendarizacionController controller;
-    private final PDFService pdfService;
 
     private JComboBox<Categoria> cbCategoria;
-    private JTextField txtFecha;
-    private JButton btnBuscar;
-    private JButton btnPdf;
+    private JSpinner spnFecha;
     private JTable tablaMatriz;
     private DefaultTableModel modeloTabla;
 
-    private static final int HORA_INICIO = 7;
-    private static final int HORA_FIN = 18; // exclusivo
-
     public CalendarizacionView() {
         controller = new CalendarizacionController();
-        pdfService = new PDFService();
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         add(crearPanelFiltros(), BorderLayout.NORTH);
 
-        modeloTabla = new DefaultTableModel();
+        modeloTabla = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tablaMatriz = new JTable(modeloTabla);
+        tablaMatriz.setRowHeight(30);
+        tablaMatriz.getTableHeader().setReorderingAllowed(false);
+        tablaMatriz.setDefaultRenderer(Object.class, new CeldaReservaRenderer());
         add(new JScrollPane(tablaMatriz), BorderLayout.CENTER);
 
         cargarCategorias();
@@ -49,46 +61,71 @@ public class CalendarizacionView extends JPanel {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panel.setBorder(BorderFactory.createTitledBorder("Filtros"));
 
+        panel.add(new JLabel("Fecha:"));
+        spnFecha = new JSpinner(new SpinnerDateModel());
+        spnFecha.setEditor(new JSpinner.DateEditor(spnFecha, "dd/MM/yyyy"));
+        spnFecha.setValue(new Date());
+        panel.add(spnFecha);
+
         panel.add(new JLabel("Categoría:"));
         cbCategoria = new JComboBox<>();
-        cbCategoria.setPreferredSize(new Dimension(180, 25));
+        cbCategoria.setPreferredSize(new Dimension(200, 25));
         panel.add(cbCategoria);
 
-        panel.add(new JLabel("Fecha (yyyy-MM-dd):"));
-        txtFecha = new JTextField("2026-09-05", 10);
-        panel.add(txtFecha);
-
-        btnBuscar = new JButton("Buscar");
-        panel.add(btnBuscar);
+        JButton btnBuscar = new JButton("Buscar");
         btnBuscar.addActionListener(e -> generarMatriz());
+        panel.add(btnBuscar);
 
-        btnPdf = new JButton("Generar PDF");
-        panel.add(btnPdf);
+        JButton btnRefrescar = new JButton("Recargar categorías");
+        btnRefrescar.addActionListener(e -> cargarCategorias());
+        panel.add(btnRefrescar);
+
+        JButton btnPdf = new JButton("Generar PDF");
         btnPdf.addActionListener(e -> generarPdf());
+        panel.add(btnPdf);
 
         return panel;
     }
 
+    /** Recarga las categorías conservando la seleccionada. */
+    @Override
+    public void refrescar() {
+        Categoria actual = (Categoria) cbCategoria.getSelectedItem();
+        cargarCategorias();
+        if (actual != null) {
+            for (int i = 0; i < cbCategoria.getItemCount(); i++) {
+                if (cbCategoria.getItemAt(i).getId().equals(actual.getId())) {
+                    cbCategoria.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+        if (modeloTabla.getColumnCount() > 0) {
+            generarMatriz();
+        }
+    }
+
     private void cargarCategorias() {
+        cbCategoria.removeAllItems();
         try {
-            List<Categoria> categorias = controller.obtenerCategorias();
-            for (Categoria c : categorias) {
+            for (Categoria c : controller.obtenerCategorias()) {
                 cbCategoria.addItem(c);
             }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al cargar categorías: " + ex.getMessage());
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error al cargar categorías: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void generarMatriz() {
         Categoria categoria = (Categoria) cbCategoria.getSelectedItem();
         if (categoria == null) {
-            JOptionPane.showMessageDialog(this, "No hay categoría seleccionada.");
+            JOptionPane.showMessageDialog(this, "Seleccione una categoría.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        Date fecha = (Date) spnFecha.getValue();
 
         try {
-            Date fecha = new SimpleDateFormat("yyyy-MM-dd").parse(txtFecha.getText().trim());
             List<Recurso> recursos = controller.obtenerRecursosPorCategoria(categoria);
             List<Reserva> reservasDelDia = controller.obtenerReservasDelDia(fecha);
 
@@ -105,24 +142,22 @@ public class CalendarizacionView extends JPanel {
                 datos[fila][0] = String.format("%02d:00", hora);
 
                 for (int col = 0; col < recursos.size(); col++) {
-                    Recurso recurso = recursos.get(col);
-                    Reserva reserva = controller.buscarReservaEnCelda(reservasDelDia, recurso, hora);
-                    if (reserva != null) {
-                        String nombreFuncionario = reserva.getFuncionario() != null
-                                ? reserva.getFuncionario().getNombre() : "?";
-                        datos[fila][col + 1] = reserva.getActividad() + " (" + nombreFuncionario + ")";
-                    } else {
-                        datos[fila][col + 1] = "";
-                    }
+                    Reserva reserva = controller.buscarReservaEnCelda(reservasDelDia, recursos.get(col), hora);
+                    datos[fila][col + 1] = reserva != null ? controller.descripcionCelda(reserva) : "";
                 }
             }
 
             modeloTabla.setDataVector(datos, columnas);
 
-        } catch (java.text.ParseException ex) {
-            JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Use yyyy-MM-dd.");
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            SwingUtilities.invokeLater(() -> {
+                Rectangle celda = tablaMatriz.getCellRect(HORA_SCROLL_INICIAL - HORA_INICIO, 0, true);
+                celda.height = tablaMatriz.getVisibleRect().height;
+                tablaMatriz.scrollRectToVisible(celda);
+            });
+
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error al leer los datos: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -131,6 +166,16 @@ public class CalendarizacionView extends JPanel {
             JOptionPane.showMessageDialog(this, "Primero presione 'Buscar' para cargar la matriz.",
                     "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
+        }
+
+        JFileChooser selector = new JFileChooser();
+        selector.setSelectedFile(new File("calendarizacion.pdf"));
+        if (selector.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        String ruta = selector.getSelectedFile().getAbsolutePath();
+        if (!ruta.toLowerCase().endsWith(".pdf")) {
+            ruta += ".pdf";
         }
 
         try {
@@ -151,17 +196,36 @@ public class CalendarizacionView extends JPanel {
             }
 
             Categoria categoria = (Categoria) cbCategoria.getSelectedItem();
-            String titulo = "Calendarizacion de recursos - " + txtFecha.getText().trim()
+            String titulo = "Calendarizacion de recursos - "
+                    + new SimpleDateFormat("dd/MM/yyyy").format((Date) spnFecha.getValue())
                     + (categoria != null ? " - " + categoria.getDescripcion() : "");
 
-            String ruta = "data/reporte_calendarizacion_" + System.currentTimeMillis() + ".pdf";
-            pdfService.generarReporte(titulo, columnas, filas, ruta);
+            controller.generarReportePDF(titulo, columnas, filas, ruta);
 
-            JOptionPane.showMessageDialog(this, "Reporte generado en: " + ruta,
+            JOptionPane.showMessageDialog(this, "Reporte generado en:\n" + ruta,
                     "PDF generado", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Error al generar el PDF: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /** Pinta de color las celdas reservadas para que se distingan de las libres. */
+    private static class CeldaReservaRenderer extends DefaultTableCellRenderer {
+        private static final Color COLOR_RESERVADO = new Color(255, 224, 178);
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                       boolean hasFocus, int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if (!isSelected) {
+                boolean ocupada = column > 0 && value != null && !value.toString().isEmpty();
+                c.setBackground(ocupada ? COLOR_RESERVADO : Color.WHITE);
+            }
+            if (value != null) {
+                setToolTipText(value.toString().isEmpty() ? null : value.toString());
+            }
+            return c;
         }
     }
 
@@ -170,7 +234,7 @@ public class CalendarizacionView extends JPanel {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Prueba Calendarización");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(700, 500);
+            frame.setSize(900, 550);
             frame.add(new CalendarizacionView());
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);

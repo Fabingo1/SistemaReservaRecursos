@@ -2,7 +2,9 @@ package controladores;
 
 import modelo.Reserva;
 import servicios.GestorXML;
+import servicios.PDFService;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -14,24 +16,27 @@ import java.util.List;
  * programación de actividades". Muestra, para una semana dada, una matriz
  * hora x día con las actividades programadas (sin filtrar por categoría de
  * recurso, a diferencia de la Calendarización de recursos).
- *
- * La lógica que cruza varias entidades (filtrar reservas por semana, decidir
- * si una reserva ocupa cierto día/hora) vive aquí, en el Controller, según lo
- * definido en las decisiones de arquitectura del proyecto.
  */
 public class ActividadesController {
 
-    private static final String RUTA_RESERVAS = "data/reservas.xml";
-
+    private final String rutaReservas;
     private final GestorXML gestorXML;
+    private final PDFService pdfService;
 
     public ActividadesController() {
+        this("data");
+    }
+
+    /** Permite usar otra carpeta de datos (pruebas con @TempDir). */
+    public ActividadesController(String carpetaDatos) {
+        this.rutaReservas = new File(carpetaDatos, "reservas.xml").getPath();
         this.gestorXML = new GestorXML();
+        this.pdfService = new PDFService();
     }
 
     /** Carga todas las reservas activas (no canceladas) almacenadas en el XML. */
     public List<Reserva> cargarReservasActivas() throws IOException {
-        List<Reserva> todas = gestorXML.cargarDatos(RUTA_RESERVAS);
+        List<Reserva> todas = gestorXML.cargarDatos(rutaReservas);
         List<Reserva> activas = new ArrayList<>();
         for (Reserva r : todas) {
             if (r.estaActiva()) {
@@ -44,9 +49,13 @@ public class ActividadesController {
     /** Retorna la fecha (a las 00:00) del lunes de la semana que contiene fecha. */
     public Date obtenerLunesDeSemana(Date fecha) {
         Calendar cal = Calendar.getInstance();
-        cal.setTime(fecha);
         cal.setFirstDayOfWeek(Calendar.MONDAY);
-        cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+        cal.setTime(fecha);
+        // Retroceder día a día hasta llegar al lunes (evita ambigüedades de
+        // Calendar.set(DAY_OF_WEEK) con el domingo según el Locale).
+        while (cal.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) {
+            cal.add(Calendar.DAY_OF_MONTH, -1);
+        }
         limpiarHora(cal);
         return cal.getTime();
     }
@@ -86,21 +95,12 @@ public class ActividadesController {
     }
 
     /**
-     * Indica si la reserva ocupa el día (mismo año/mes/día) y la hora (0-23)
-     * dados. Se considera que ocupa la hora H si horaInicio <= H:00 < horaFin.
+     * Indica si la reserva ocupa (aunque sea parcialmente) la franja de la
+     * hora dada en ese día. Usa la misma regla que Calendarización
+     * (Reserva.ocupaHora), considerando minutos.
      */
     public boolean ocurreEn(Reserva r, Date dia, int hora) {
-        if (r.getFecha() == null || r.getHoraInicio() == null || r.getHoraFin() == null) {
-            return false;
-        }
-        if (!mismoDia(r.getFecha(), dia)) {
-            return false;
-        }
-
-        double inicioDecimal = obtenerHora(r.getHoraInicio()) + obtenerMinuto(r.getHoraInicio()) / 60.0;
-        double finDecimal = obtenerHora(r.getHoraFin()) + obtenerMinuto(r.getHoraFin()) / 60.0;
-
-        return hora >= inicioDecimal && hora < finDecimal;
+        return r.ocupaHora(dia, hora);
     }
 
     /** Texto a mostrar en la celda de la matriz para una reserva dada. */
@@ -109,13 +109,10 @@ public class ActividadesController {
         return r.getActividad() + " (" + funcionario + ")";
     }
 
-    private boolean mismoDia(Date a, Date b) {
-        Calendar ca = Calendar.getInstance();
-        ca.setTime(a);
-        Calendar cb = Calendar.getInstance();
-        cb.setTime(b);
-        return ca.get(Calendar.YEAR) == cb.get(Calendar.YEAR)
-                && ca.get(Calendar.DAY_OF_YEAR) == cb.get(Calendar.DAY_OF_YEAR);
+    /** Reporte PDF de la matriz semanal (la vista le pasa las filas ya armadas). */
+    public void generarReportePDF(String titulo, String[] columnas, List<Object[]> filas, String rutaSalida)
+            throws IOException {
+        pdfService.generarReporte(titulo, columnas, filas, rutaSalida);
     }
 
     private Date truncarADia(Date fecha) {
@@ -130,17 +127,5 @@ public class ActividadesController {
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
-    }
-
-    private int obtenerHora(Date fecha) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(fecha);
-        return cal.get(Calendar.HOUR_OF_DAY);
-    }
-
-    private int obtenerMinuto(Date fecha) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(fecha);
-        return cal.get(Calendar.MINUTE);
     }
 }

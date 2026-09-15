@@ -2,7 +2,6 @@ package vistas;
 
 import controladores.ActividadesController;
 import modelo.Reserva;
-import servicios.PDFService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -24,18 +23,20 @@ import java.util.List;
  * tanto en la vista de Funcionario como en la de Administrador, ya que el
  * enunciado indica que ambos roles pueden usar esta funcionalidad.
  */
-public class ActividadesView extends JPanel {
+public class ActividadesView extends JPanel implements Refrescable {
 
     private static final String[] NOMBRES_DIAS =
             {"Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"};
     private static final SimpleDateFormat FORMATO_ENCABEZADO = new SimpleDateFormat("dd/MM");
 
-    // Mismo horario de oficina que CalendarizacionView, para consistencia visual.
-    private static final int HORA_INICIO = 7;
-    private static final int HORA_FIN = 18; // exclusivo
+    // El enunciado pide "cada hora del día": se muestran las 24 horas.
+    // Se hace scroll automático a las 7:00 para que se vea el horario laboral.
+    private static final int HORA_INICIO = 0;
+    private static final int HORA_FIN = 24; // exclusivo
+    private static final int HORA_SCROLL_INICIAL = 7;
+    private static final int ALTO_POR_ACTIVIDAD = 48;
 
     private final ActividadesController controller;
-    private final PDFService pdfService;
 
     private JSpinner spinnerFecha;
     private JTable tablaActividades;
@@ -47,7 +48,6 @@ public class ActividadesView extends JPanel {
 
     public ActividadesView() {
         this.controller = new ActividadesController();
-        this.pdfService = new PDFService();
 
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -111,6 +111,11 @@ public class ActividadesView extends JPanel {
         return scroll;
     }
 
+    @Override
+    public void refrescar() {
+        cargarSemana();
+    }
+
     private void cargarSemana() {
         Date fechaSeleccionada = (Date) spinnerFecha.getValue();
         this.lunesActual = controller.obtenerLunesDeSemana(fechaSeleccionada);
@@ -124,14 +129,26 @@ public class ActividadesView extends JPanel {
             reservasSemanaActual = new ArrayList<>();
         }
 
+        // Encabezados con el nombre del día y su fecha (ej. "Lunes 07/09")
+        String[] columnas = new String[8];
+        columnas[0] = "Hora";
+        for (int d = 0; d < 7; d++) {
+            columnas[d + 1] = NOMBRES_DIAS[d] + " " + FORMATO_ENCABEZADO.format(dias.get(d));
+        }
+        modeloTabla.setColumnIdentifiers(columnas);
+
         modeloTabla.setRowCount(0);
         for (int hora = HORA_INICIO; hora < HORA_FIN; hora++) {
             Object[] fila = new Object[8];
             fila[0] = String.format("%02d:00", hora);
+            int maxActividades = 1;
             for (int d = 0; d < 7; d++) {
                 fila[d + 1] = construirTextoCelda(dias.get(d), hora);
+                maxActividades = Math.max(maxActividades, contarActividades(dias.get(d), hora));
             }
             modeloTabla.addRow(fila);
+            // Si en una misma hora hay varias actividades, la fila crece para que todas se vean
+            tablaActividades.setRowHeight(modeloTabla.getRowCount() - 1, ALTO_POR_ACTIVIDAD * maxActividades);
         }
 
         Calendar calDomingo = Calendar.getInstance();
@@ -139,6 +156,21 @@ public class ActividadesView extends JPanel {
         calDomingo.add(Calendar.DAY_OF_MONTH, 6);
         lblRangoSemana.setText(FORMATO_ENCABEZADO.format(lunesActual) + " - "
                 + FORMATO_ENCABEZADO.format(calDomingo.getTime()));
+
+        // Mostrar desde las 7:00 sin ocultar las demás horas
+        SwingUtilities.invokeLater(() -> {
+            Rectangle celda = tablaActividades.getCellRect(HORA_SCROLL_INICIAL - HORA_INICIO, 0, true);
+            celda.height = tablaActividades.getVisibleRect().height;
+            tablaActividades.scrollRectToVisible(celda);
+        });
+    }
+
+    private int contarActividades(Date dia, int hora) {
+        int n = 0;
+        for (Reserva r : reservasSemanaActual) {
+            if (controller.ocurreEn(r, dia, hora)) n++;
+        }
+        return n;
     }
 
     private String construirTextoCelda(Date dia, int hora) {
@@ -155,8 +187,9 @@ public class ActividadesView extends JPanel {
     private void generarPdf() {
         try {
             String[] columnas = new String[8];
-            columnas[0] = "Hora";
-            System.arraycopy(NOMBRES_DIAS, 0, columnas, 1, 7);
+            for (int j = 0; j < 8; j++) {
+                columnas[j] = modeloTabla.getColumnName(j);
+            }
 
             List<Object[]> filas = new ArrayList<>();
             for (int i = 0; i < modeloTabla.getRowCount(); i++) {
@@ -169,8 +202,16 @@ public class ActividadesView extends JPanel {
                 filas.add(fila);
             }
 
-            String ruta = "data/reporte_actividades_" + System.currentTimeMillis() + ".pdf";
-            pdfService.generarReporte("Programacion de actividades - Semana " + lblRangoSemana.getText(),
+            JFileChooser selector = new JFileChooser();
+            selector.setSelectedFile(new java.io.File("actividades_semana.pdf"));
+            if (selector.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+                return;
+            }
+            String ruta = selector.getSelectedFile().getAbsolutePath();
+            if (!ruta.toLowerCase().endsWith(".pdf")) {
+                ruta += ".pdf";
+            }
+            controller.generarReportePDF("Programacion de actividades - Semana " + lblRangoSemana.getText(),
                     columnas, filas, ruta);
 
             JOptionPane.showMessageDialog(this, "Reporte generado en: " + ruta,

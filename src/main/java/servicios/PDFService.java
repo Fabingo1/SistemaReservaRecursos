@@ -57,7 +57,11 @@ public class PDFService {
         PDFont fuenteNegrita = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
 
         try (PDDocument documento = new PDDocument()) {
-            PDPage pagina = new PDPage(PDRectangle.LETTER);
+            // Con muchas columnas (matrices semanales/de recursos) se usa hoja horizontal
+            PDRectangle tamano = columnas.length > 4
+                    ? new PDRectangle(PDRectangle.LETTER.getHeight(), PDRectangle.LETTER.getWidth())
+                    : PDRectangle.LETTER;
+            PDPage pagina = new PDPage(tamano);
             documento.addPage(pagina);
 
             float altoPagina = pagina.getMediaBox().getHeight();
@@ -73,7 +77,7 @@ public class PDFService {
             for (Object[] fila : filas) {
                 if (y < MARGEN + ALTO_FILA) {
                     contenido.close();
-                    pagina = new PDPage(PDRectangle.LETTER);
+                    pagina = new PDPage(tamano);
                     documento.addPage(pagina);
                     contenido = new PDPageContentStream(documento, pagina);
                     y = altoPagina - MARGEN;
@@ -114,7 +118,7 @@ public class PDFService {
         for (String columna : columnas) {
             contenido.beginText();
             contenido.newLineAtOffset(x, y);
-            contenido.showText(limpiar(columna));
+            contenido.showText(ajustarAncho(limpiar(columna), fuenteNegrita, TAMANO_TEXTO, anchoColumna - 4));
             contenido.endText();
             x += anchoColumna;
         }
@@ -133,7 +137,8 @@ public class PDFService {
         float x = MARGEN;
         contenido.setFont(fuenteNormal, TAMANO_TEXTO);
         for (Object valor : fila) {
-            String texto = recortar(limpiar(valor == null ? "" : valor.toString()), 45);
+            String texto = ajustarAncho(limpiar(valor == null ? "" : valor.toString()),
+                    fuenteNormal, TAMANO_TEXTO, anchoColumna - 4);
             contenido.beginText();
             contenido.newLineAtOffset(x, y);
             contenido.showText(texto);
@@ -151,15 +156,32 @@ public class PDFService {
      */
     private String limpiar(String texto) {
         if (texto == null) return "";
-        return texto
+        String limpio = texto
                 .replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
                 .replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
-                .replace("ñ", "n").replace("Ñ", "N");
+                .replace("ñ", "n").replace("Ñ", "N").replace("ü", "u").replace("Ü", "U")
+                .replace("\n", " ").replace("\r", " ").replace("\t", " ");
+        // Cualquier otro carácter fuera de ASCII imprimible se reemplaza por '?'
+        StringBuilder sb = new StringBuilder();
+        for (char c : limpio.toCharArray()) {
+            sb.append(c >= 32 && c < 127 ? c : '?');
+        }
+        return sb.toString();
     }
 
-    private String recortar(String texto, int maxLength) {
-        if (texto.length() <= maxLength) return texto;
-        return texto.substring(0, maxLength - 3) + "...";
+    /** Recorta el texto (agregando "...") para que quepa en el ancho de la columna. */
+    private String ajustarAncho(String texto, PDFont fuente, float tamano, float anchoMaximo) throws IOException {
+        if (anchoTexto(texto, fuente, tamano) <= anchoMaximo) return texto;
+        String puntos = "...";
+        int fin = texto.length();
+        while (fin > 0 && anchoTexto(texto.substring(0, fin) + puntos, fuente, tamano) > anchoMaximo) {
+            fin--;
+        }
+        return fin == 0 ? "" : texto.substring(0, fin) + puntos;
+    }
+
+    private float anchoTexto(String texto, PDFont fuente, float tamano) throws IOException {
+        return fuente.getStringWidth(texto) / 1000f * tamano;
     }
 
     public static void main(String[] args) throws IOException {

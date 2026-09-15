@@ -19,7 +19,7 @@ import java.util.List;
  * al crear uno nuevo; una vez seleccionado un recurso existente el id queda
  * bloqueado, porque RecursoController no permite cambiarlo.
  */
-public class RecursoView extends JPanel {
+public class RecursoView extends JPanel implements Refrescable {
 
     private final RecursoController controller;
 
@@ -153,6 +153,18 @@ public class RecursoView extends JPanel {
         JScrollPane scroll = new JScrollPane(tablaListado);
         scroll.setBorder(BorderFactory.createTitledBorder("Listado"));
         return scroll;
+    }
+
+    /** Recarga combos de categorías (conservando la selección) y la tabla. */
+    @Override
+    public void refrescar() {
+        Categoria filtro = (Categoria) cbCategoriaFiltro.getSelectedItem();
+        Categoria form = (Categoria) cbCategoriaForm.getSelectedItem();
+        cargarCategoriasEnCombo(cbCategoriaFiltro, true);
+        cargarCategoriasEnCombo(cbCategoriaForm, false);
+        if (filtro != null) seleccionarCategoriaEnCombo(cbCategoriaFiltro, filtro.getId());
+        if (form != null) seleccionarCategoriaEnCombo(cbCategoriaForm, form.getId());
+        buscar();
     }
 
     // ---------- Acciones ----------

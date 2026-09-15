@@ -17,7 +17,7 @@ import java.util.List;
  * Layout inspirado en el mockup del enunciado: panel de búsqueda arriba,
  * formulario de la categoría seleccionada/nueva en medio, listado abajo.
  */
-public class CategoriaView extends JPanel {
+public class CategoriaView extends JPanel implements Refrescable {
 
     private final CategoriaController controller;
 
@@ -135,6 +135,11 @@ public class CategoriaView extends JPanel {
     }
 
     // ---------- Acciones ----------
+
+    @Override
+    public void refrescar() {
+        buscar();
+    }
 
     private void buscar() {
         try {

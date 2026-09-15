@@ -3,7 +3,9 @@ package controladores;
 import modelo.DetalleReserva;
 import modelo.Reserva;
 import servicios.GestorXML;
+import servicios.PDFService;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,56 +15,83 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Controlador de la funcionalidad 8 del enunciado: "Estadísticas". Calcula,
  * para un rango de fechas [desde, hasta]:
- *  - la cantidad de reservas por categoría de recurso (para el gráfico de
- *    recursos reservados), y
- *  - la cantidad de actividades (reservas) programadas por semana (para el
- *    gráfico de actividades calendarizadas).
- *
- * Ambos cálculos cruzan varias entidades (Reserva, DetalleReserva, Categoria),
- * por lo que, según las decisiones de arquitectura del proyecto, viven en el
- * Controller y no en el modelo de dominio.
+ *  - la cantidad de reservas por categoría de recurso, y
+ *  - la cantidad de actividades programadas en CADA semana del período
+ *    (incluyendo las semanas con 0 actividades, como pide el enunciado).
  */
 public class EstadisticasController {
 
-    private static final String RUTA_RESERVAS = "data/reservas.xml";
-    private static final SimpleDateFormat FORMATO_DIA = new SimpleDateFormat("dd/MM");
-
+    private final String rutaReservas;
     private final GestorXML gestorXML;
+    private final PDFService pdfService;
 
     public EstadisticasController() {
+        this("data");
+    }
+
+    /** Permite usar otra carpeta de datos (pruebas con @TempDir). */
+    public EstadisticasController(String carpetaDatos) {
+        this.rutaReservas = new File(carpetaDatos, "reservas.xml").getPath();
         this.gestorXML = new GestorXML();
+        this.pdfService = new PDFService();
     }
 
     /**
      * Cantidad de veces que se reservó cada categoría de recurso dentro del
-     * período [desde, hasta], ordenado de mayor a menor cantidad.
+     * período [desde, hasta], ordenado de mayor a menor cantidad. Se agrupa
+     * por id de categoría (dos categorías con igual descripción no se mezclan).
      */
     public Map<String, Integer> estadisticasRecursos(Date desde, Date hasta) throws IOException {
-        Map<String, Integer> conteo = new HashMap<>();
+        validarRango(desde, hasta);
+        Map<String, Integer> conteoPorId = new HashMap<>();
+        Map<String, String> descripcionPorId = new HashMap<>();
         for (Reserva r : cargarReservasActivasEnRango(desde, hasta)) {
             for (DetalleReserva d : r.getDetalles()) {
                 if (d.getCategoriaSolicitada() == null) continue;
-                String descripcion = d.getCategoriaSolicitada().getDescripcion();
-                conteo.merge(descripcion, 1, Integer::sum);
+                String id = d.getCategoriaSolicitada().getId();
+                conteoPorId.merge(id, 1, Integer::sum);
+                descripcionPorId.putIfAbsent(id, d.getCategoriaSolicitada().getDescripcion());
             }
         }
-        return ordenarPorValorDescendente(conteo);
+
+        Map<String, Integer> resultado = new LinkedHashMap<>();
+        conteoPorId.entrySet().stream()
+                .sorted((a, b) -> b.getValue() - a.getValue())
+                .forEach(e -> {
+                    String etiqueta = descripcionPorId.get(e.getKey());
+                    if (resultado.containsKey(etiqueta)) {
+                        etiqueta = etiqueta + " (" + e.getKey() + ")";
+                    }
+                    resultado.put(etiqueta, e.getValue());
+                });
+        return resultado;
     }
 
     /**
-     * Cantidad de actividades (reservas) programadas en cada semana
-     * comprendida en el período [desde, hasta], ordenado cronológicamente.
+     * Cantidad de actividades (reservas activas) en cada semana (lunes a
+     * domingo) comprendida en [desde, hasta], en orden cronológico.
+     * Las semanas sin actividades aparecen con 0.
      */
     public Map<String, Integer> estadisticasActividades(Date desde, Date hasta) throws IOException {
-        TreeMap<Date, Integer> conteoPorLunes = new TreeMap<>();
+        validarRango(desde, hasta);
+
+        // 1. Crear todas las semanas del período con conteo 0
+        Map<Date, Integer> conteoPorLunes = new LinkedHashMap<>();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(lunesDe(desde));
+        Date limite = finDelDia(hasta);
+        while (!cal.getTime().after(limite)) {
+            conteoPorLunes.put(cal.getTime(), 0);
+            cal.add(Calendar.DAY_OF_MONTH, 7);
+        }
+
+        // 2. Sumar las actividades de cada semana
         for (Reserva r : cargarReservasActivasEnRango(desde, hasta)) {
-            Date lunes = lunesDe(r.getFecha());
-            conteoPorLunes.merge(lunes, 1, Integer::sum);
+            conteoPorLunes.merge(lunesDe(r.getFecha()), 1, Integer::sum);
         }
 
         Map<String, Integer> resultado = new LinkedHashMap<>();
@@ -72,8 +101,30 @@ public class EstadisticasController {
         return resultado;
     }
 
+    /** Reporte PDF de una tabla de estadísticas (etiqueta, cantidad). */
+    public void generarReportePDF(String titulo, String nombreColumna, Map<String, Integer> datos,
+                                  String rutaSalida) throws IOException {
+        List<Object[]> filas = new ArrayList<>();
+        int total = 0;
+        for (Map.Entry<String, Integer> e : datos.entrySet()) {
+            filas.add(new Object[]{e.getKey(), e.getValue()});
+            total += e.getValue();
+        }
+        filas.add(new Object[]{"TOTAL", total});
+        pdfService.generarReporte(titulo, new String[]{nombreColumna, "Cantidad"}, filas, rutaSalida);
+    }
+
+    private void validarRango(Date desde, Date hasta) {
+        if (desde == null || hasta == null) {
+            throw new IllegalArgumentException("Debe indicar las fechas 'desde' y 'hasta'.");
+        }
+        if (truncarADia(desde).after(truncarADia(hasta))) {
+            throw new IllegalArgumentException("La fecha 'Desde' no puede ser posterior a 'Hasta'.");
+        }
+    }
+
     private List<Reserva> cargarReservasActivasEnRango(Date desde, Date hasta) throws IOException {
-        List<Reserva> todas = gestorXML.cargarDatos(RUTA_RESERVAS);
+        List<Reserva> todas = gestorXML.cargarDatos(rutaReservas);
         List<Reserva> resultado = new ArrayList<>();
         Date desdeDia = truncarADia(desde);
         Date hastaFinDia = finDelDia(hasta);
@@ -86,27 +137,21 @@ public class EstadisticasController {
         return resultado;
     }
 
-    private Map<String, Integer> ordenarPorValorDescendente(Map<String, Integer> mapa) {
-        Map<String, Integer> resultado = new LinkedHashMap<>();
-        mapa.entrySet().stream()
-                .sorted((a, b) -> b.getValue() - a.getValue())
-                .forEach(e -> resultado.put(e.getKey(), e.getValue()));
-        return resultado;
-    }
-
     private Date lunesDe(Date fecha) {
         Calendar cal = Calendar.getInstance();
-        cal.setTime(fecha);
-        cal.setFirstDayOfWeek(Calendar.MONDAY);
-        cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-        return truncarADia(cal.getTime());
+        cal.setTime(truncarADia(fecha));
+        while (cal.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) {
+            cal.add(Calendar.DAY_OF_MONTH, -1);
+        }
+        return cal.getTime();
     }
 
     private String etiquetaSemana(Date lunes) {
+        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yy");
         Calendar cal = Calendar.getInstance();
         cal.setTime(lunes);
         cal.add(Calendar.DAY_OF_MONTH, 6);
-        return FORMATO_DIA.format(lunes) + " - " + FORMATO_DIA.format(cal.getTime());
+        return formato.format(lunes) + " - " + formato.format(cal.getTime());
     }
 
     private Date truncarADia(Date fecha) {

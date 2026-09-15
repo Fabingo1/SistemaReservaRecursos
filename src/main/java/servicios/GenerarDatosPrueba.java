@@ -2,91 +2,168 @@ package servicios;
 
 import modelo.*;
 
+import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Genera datos iniciales en la carpeta data/. Main lo llama al arrancar:
+ * si todavía no existe administradores.xml (por ejemplo, recién clonado el
+ * repositorio, ya que data/*.xml está en .gitignore) se crean los datos de
+ * prueba; si ya existen, NO se toca nada.
+ *
+ * Usuarios creados:  admin1 / admin1  (administrador)
+ *                    func1  / func1   (funcionario)
+ *                    func2  / func2   (funcionario)
+ */
 public class GenerarDatosPrueba {
 
-    public static void main(String[] args) throws IOException, Exception {
+    public static void main(String[] args) throws IOException {
+        generar("data");
+        System.out.println("Datos de prueba generados en data/");
+    }
+
+    /** Genera los datos solo si la carpeta aún no tiene usuarios. Retorna true si generó. */
+    public static boolean generarSiNoExisten(String carpeta) throws IOException {
+        if (new File(carpeta, "administradores.xml").exists()) {
+            return false;
+        }
+        generar(carpeta);
+        return true;
+    }
+
+    /** Sobrescribe los XML de la carpeta con datos de prueba. */
+    public static void generar(String carpeta) throws IOException {
         GestorXML gestor = new GestorXML();
 
-        // --- Administrador de prueba ---
+        // --- Administrador ---
         Administrador admin = new Administrador();
         admin.setId("admin1");
         admin.setClave("admin1");
         List<Administrador> admins = new ArrayList<>();
         admins.add(admin);
-        gestor.guardarDatos(admins, "data/administradores.xml");
+        gestor.guardarDatos(admins, ruta(carpeta, "administradores.xml"));
 
-        // --- Funcionario de prueba ---
-        Funcionario func = new Funcionario();
-        func.setId("func1");
-        func.setClave("func1");
-        func.setNombre("Juan Pérez");
-        func.setTelefono("8888-8888");
+        // --- Funcionarios (clave inicial = id, como pide el enunciado) ---
+        Funcionario func1 = crearFuncionario("func1", "Juan Pérez", "8888-8888");
+        Funcionario func2 = crearFuncionario("func2", "María Solís", "8777-7777");
         List<Funcionario> funcionarios = new ArrayList<>();
-        funcionarios.add(func);
-        gestor.guardarDatos(funcionarios, "data/funcionarios.xml");
+        funcionarios.add(func1);
+        funcionarios.add(func2);
+        gestor.guardarDatos(funcionarios, ruta(carpeta, "funcionarios.xml"));
 
-        // --- Categorías de prueba ---
-        Categoria catSala = new Categoria();
-        catSala.setId("cat1");
-        catSala.setDescripcion("Sala para 10 personas");
-
-        Categoria catLaptop = new Categoria();
-        catLaptop.setId("cat2");
-        catLaptop.setDescripcion("Laptop windows 11");
-
+        // --- Categorías ---
+        Categoria catSala = crearCategoria("CAT-001", "Sala para 10 personas");
+        Categoria catLaptop = crearCategoria("CAT-002", "Laptop windows 11");
+        Categoria catProyector = crearCategoria("CAT-003", "Proyector");
         List<Categoria> categorias = new ArrayList<>();
         categorias.add(catSala);
         categorias.add(catLaptop);
-        gestor.guardarDatos(categorias, "data/categorias.xml");
+        categorias.add(catProyector);
+        gestor.guardarDatos(categorias, ruta(carpeta, "categorias.xml"));
 
-        // --- Recursos de prueba ---
-        Recurso sala1 = new Recurso();
-        sala1.setId("R1");
-        sala1.setCategoria(catSala);
-        sala1.setDescripcion("Sala 1 primer piso");
-
-        Recurso sala2 = new Recurso();
-        sala2.setId("R2");
-        sala2.setCategoria(catSala);
-        sala2.setDescripcion("Sala 2 segundo piso");
-
-        Recurso laptop1 = new Recurso();
-        laptop1.setId("R3");
-        laptop1.setCategoria(catLaptop);
-        laptop1.setDescripcion("Laptop #238715");
-
+        // --- Recursos ---
+        Recurso sala1 = crearRecurso("SALA-1", catSala, "Sala 1 primer piso");
+        Recurso sala2 = crearRecurso("SALA-2", catSala, "Sala 2 segundo piso");
+        Recurso laptop1 = crearRecurso("238715", catLaptop, "Laptop #238715");
+        Recurso laptop2 = crearRecurso("238716", catLaptop, "Laptop #238716");
+        Recurso proyector1 = crearRecurso("PRY-01", catProyector, "Proyector Epson");
         List<Recurso> recursos = new ArrayList<>();
         recursos.add(sala1);
         recursos.add(sala2);
         recursos.add(laptop1);
-        gestor.guardarDatos(recursos, "data/recursos.xml");
+        recursos.add(laptop2);
+        recursos.add(proyector1);
+        gestor.guardarDatos(recursos, ruta(carpeta, "recursos.xml"));
 
-        // --- Reserva de prueba ---
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-
-        Reserva reserva = new Reserva();
-        reserva.setId("res1");
-        reserva.setActividad("Sesión de Junta Directiva");
-        reserva.setFecha(sdf.parse("2026-09-05 00:00"));
-        reserva.setHoraInicio(sdf.parse("2026-09-05 09:00"));
-        reserva.setHoraFin(sdf.parse("2026-09-05 11:00"));
-        reserva.setFuncionario(func);
-
-        DetalleReserva detalle = new DetalleReserva();
-        detalle.setCategoriaSolicitada(catSala);
-        detalle.setRecursoAsignado(sala1);
-        reserva.getDetalles().add(detalle);
-
+        // --- Reservas: relativas a la fecha actual para que las matrices
+        //     y estadísticas muestren datos al abrir el programa ---
         List<Reserva> reservas = new ArrayList<>();
-        reservas.add(reserva);
-        gestor.guardarDatos(reservas, "data/reservas.xml");
+        reservas.add(crearReserva("RES-000001", "Sesión de Junta Directiva", diasDesdeHoy(1), 9, 0, 11, 0,
+                func1, new Categoria[]{catSala, catProyector}, new Recurso[]{sala1, proyector1}));
+        reservas.add(crearReserva("RES-000002", "Capacitación Excel", diasDesdeHoy(1), 10, 30, 12, 0,
+                func2, new Categoria[]{catSala, catLaptop}, new Recurso[]{sala2, laptop1}));
+        reservas.add(crearReserva("RES-000003", "Reunión de planificación", diasDesdeHoy(3), 14, 0, 15, 30,
+                func1, new Categoria[]{catSala}, new Recurso[]{sala1}));
+        reservas.add(crearReserva("RES-000004", "Revisión de presupuesto", diasDesdeHoy(-7), 8, 0, 9, 0,
+                func2, new Categoria[]{catLaptop}, new Recurso[]{laptop2}));
+        gestor.guardarDatos(reservas, ruta(carpeta, "reservas.xml"));
+    }
 
-        System.out.println("Datos de prueba generados en data/");
+    // ------------------------------------------------------------------
+
+    private static String ruta(String carpeta, String archivo) {
+        return new File(carpeta, archivo).getPath();
+    }
+
+    private static Funcionario crearFuncionario(String id, String nombre, String telefono) {
+        Funcionario f = new Funcionario();
+        f.setId(id);
+        f.setClave(id);
+        f.setNombre(nombre);
+        f.setTelefono(telefono);
+        return f;
+    }
+
+    private static Categoria crearCategoria(String id, String descripcion) {
+        Categoria c = new Categoria();
+        c.setId(id);
+        c.setDescripcion(descripcion);
+        return c;
+    }
+
+    private static Recurso crearRecurso(String id, Categoria categoria, String descripcion) {
+        Recurso r = new Recurso();
+        r.setId(id);
+        r.setCategoria(categoria);
+        r.setDescripcion(descripcion);
+        return r;
+    }
+
+    private static Date diasDesdeHoy(int dias) {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, dias);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
+
+    private static Date hora(Date dia, int h, int m) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(dia);
+        cal.set(Calendar.HOUR_OF_DAY, h);
+        cal.set(Calendar.MINUTE, m);
+        return cal.getTime();
+    }
+
+    private static Reserva crearReserva(String id, String actividad, Date dia, int hIni, int mIni,
+                                        int hFin, int mFin, Funcionario funcionario,
+                                        Categoria[] categorias, Recurso[] recursos) {
+        Reserva r = new Reserva();
+        r.setId(id);
+        r.setActividad(actividad);
+        r.setFecha(dia);
+        r.setHoraInicio(hora(dia, hIni, mIni));
+        r.setHoraFin(hora(dia, hFin, mFin));
+
+        // Copia del funcionario SIN clave (igual que hace ReservaController)
+        Funcionario copia = new Funcionario();
+        copia.setId(funcionario.getId());
+        copia.setNombre(funcionario.getNombre());
+        copia.setTelefono(funcionario.getTelefono());
+        r.setFuncionario(copia);
+
+        for (int i = 0; i < categorias.length; i++) {
+            DetalleReserva d = new DetalleReserva();
+            d.setCategoriaSolicitada(categorias[i]);
+            d.setRecursoAsignado(recursos[i]);
+            r.getDetalles().add(d);
+        }
+        return r;
     }
 }

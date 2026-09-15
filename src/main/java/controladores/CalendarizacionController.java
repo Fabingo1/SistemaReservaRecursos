@@ -1,33 +1,50 @@
 package controladores;
 
 import modelo.Categoria;
+import modelo.DetalleReserva;
 import modelo.Recurso;
 import modelo.Reserva;
 import servicios.GestorXML;
+import servicios.PDFService;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import modelo.DetalleReserva;
 
+/**
+ * Controlador de la funcionalidad 6: "Visualización de calendarización de
+ * recursos" (matriz hora x recurso para una fecha y categoría).
+ */
 public class CalendarizacionController {
 
-    private static final String RUTA_CATEGORIAS = "data/categorias.xml";
-    private static final String RUTA_RECURSOS = "data/recursos.xml";
-    private static final String RUTA_RESERVAS = "data/reservas.xml";
+    private final String rutaCategorias;
+    private final String rutaRecursos;
+    private final String rutaReservas;
 
     private final GestorXML gestorXML;
+    private final PDFService pdfService;
 
     public CalendarizacionController() {
+        this("data");
+    }
+
+    /** Permite usar otra carpeta de datos (pruebas con @TempDir). */
+    public CalendarizacionController(String carpetaDatos) {
+        this.rutaCategorias = new File(carpetaDatos, "categorias.xml").getPath();
+        this.rutaRecursos = new File(carpetaDatos, "recursos.xml").getPath();
+        this.rutaReservas = new File(carpetaDatos, "reservas.xml").getPath();
         this.gestorXML = new GestorXML();
+        this.pdfService = new PDFService();
     }
 
-    public List<Categoria> obtenerCategorias() throws Exception {
-        return gestorXML.cargarDatos(RUTA_CATEGORIAS);
+    public List<Categoria> obtenerCategorias() throws IOException {
+        return gestorXML.cargarDatos(rutaCategorias);
     }
 
-    public List<Recurso> obtenerRecursosPorCategoria(Categoria categoria) throws Exception {
-        List<Recurso> todos = gestorXML.cargarDatos(RUTA_RECURSOS);
+    public List<Recurso> obtenerRecursosPorCategoria(Categoria categoria) throws IOException {
+        List<Recurso> todos = gestorXML.cargarDatos(rutaRecursos);
         List<Recurso> filtrados = new ArrayList<>();
         for (Recurso r : todos) {
             if (r.getCategoria() != null && r.getCategoria().getId().equals(categoria.getId())) {
@@ -37,29 +54,27 @@ public class CalendarizacionController {
         return filtrados;
     }
 
-    public List<Reserva> obtenerReservasDelDia(Date fecha) throws Exception {
-        List<Reserva> todas = gestorXML.cargarDatos(RUTA_RESERVAS);
+    public List<Reserva> obtenerReservasDelDia(Date fecha) throws IOException {
+        List<Reserva> todas = gestorXML.cargarDatos(rutaReservas);
         List<Reserva> delDia = new ArrayList<>();
         for (Reserva r : todas) {
-            if (r.estaActiva() && esMismoDia(r.getFecha(), fecha)) {
+            if (r.estaActiva() && r.esDelDia(fecha)) {
                 delDia.add(r);
             }
         }
         return delDia;
     }
 
-    private boolean esMismoDia(Date f1, Date f2) {
-        if (f1 == null || f2 == null) return false;
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
-        return sdf.format(f1).equals(sdf.format(f2));
-    }
-
+    /**
+     * Retorna la reserva que tiene asignado ese recurso en esa hora del día
+     * (o null si está libre). Usa Reserva.ocupaHora, que considera minutos.
+     */
     public Reserva buscarReservaEnCelda(List<Reserva> reservasDelDia, Recurso recurso, int hora) {
         for (Reserva r : reservasDelDia) {
             for (DetalleReserva d : r.getDetalles()) {
                 if (d.getRecursoAsignado() != null
                         && d.getRecursoAsignado().getId().equals(recurso.getId())
-                        && ocupaHora(r, hora)) {
+                        && r.ocupaHora(r.getFecha(), hora)) {
                     return r;
                 }
             }
@@ -67,15 +82,15 @@ public class CalendarizacionController {
         return null;
     }
 
-    private boolean ocupaHora(Reserva r, int hora) {
-        java.util.Calendar calInicio = java.util.Calendar.getInstance();
-        calInicio.setTime(r.getHoraInicio());
-        java.util.Calendar calFin = java.util.Calendar.getInstance();
-        calFin.setTime(r.getHoraFin());
+    /** Texto de la celda: actividad y funcionario responsable. */
+    public String descripcionCelda(Reserva r) {
+        String nombre = r.getFuncionario() != null ? r.getFuncionario().getNombre() : "N/D";
+        return r.getActividad() + " (" + nombre + ")";
+    }
 
-        int horaInicio = calInicio.get(java.util.Calendar.HOUR_OF_DAY);
-        int horaFin = calFin.get(java.util.Calendar.HOUR_OF_DAY);
-
-        return hora >= horaInicio && hora < horaFin;
+    /** Reporte PDF de la matriz (la vista le pasa las filas ya armadas). */
+    public void generarReportePDF(String titulo, String[] columnas, List<Object[]> filas, String rutaSalida)
+            throws IOException {
+        pdfService.generarReporte(titulo, columnas, filas, rutaSalida);
     }
 }

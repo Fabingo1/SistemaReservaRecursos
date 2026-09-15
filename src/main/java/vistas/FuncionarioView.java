@@ -22,7 +22,7 @@ import java.util.List;
  * separados (igual que el mockup), pero solo se usa uno a la vez — si el
  * campo Id tiene texto, se busca por id; si no, se busca por nombre.
  */
-public class FuncionarioView extends JPanel {
+public class FuncionarioView extends JPanel implements Refrescable {
 
     private final FuncionarioController controller;
 
@@ -163,6 +163,11 @@ public class FuncionarioView extends JPanel {
     }
 
     // ---------- Acciones ----------
+
+    @Override
+    public void refrescar() {
+        buscar();
+    }
 
     private void buscar() {
         try {

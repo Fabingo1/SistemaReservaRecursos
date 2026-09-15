@@ -2,6 +2,7 @@ package controladores;
 
 import modelo.Administrador;
 import modelo.Funcionario;
+import modelo.Reserva;
 import servicios.GestorXML;
 import servicios.PDFService;
 
@@ -27,6 +28,7 @@ public class FuncionarioController {
 
     private final String rutaFuncionarios;
     private final String rutaAdministradores;
+    private final String rutaReservas;
     private final GestorXML gestorXML;
     private final PDFService pdfService;
 
@@ -38,6 +40,7 @@ public class FuncionarioController {
     public FuncionarioController(String rutaFuncionarios, String rutaAdministradores) {
         this.rutaFuncionarios = rutaFuncionarios;
         this.rutaAdministradores = rutaAdministradores;
+        this.rutaReservas = CategoriaController.rutaHermana(rutaFuncionarios, "reservas.xml");
         this.gestorXML = new GestorXML();
         this.pdfService = new PDFService();
     }
@@ -120,9 +123,14 @@ public class FuncionarioController {
         existente.setTelefono(nuevoTelefono.trim());
 
         gestorXML.guardarDatos(funcionarios, rutaFuncionarios);
+        propagarDatos(id, nuevoNombre.trim(), nuevoTelefono.trim());
     }
 
     public void borrar(String id) throws IOException {
+        if (tieneReservasFuturas(id)) {
+            throw new IllegalArgumentException("No se puede borrar al funcionario " + id
+                    + ": tiene reservas activas pendientes. Deben cancelarse primero.");
+        }
         List<Funcionario> funcionarios = listar();
         boolean eliminado = funcionarios.removeIf(f -> f.getId().equals(id));
 
@@ -151,6 +159,42 @@ public class FuncionarioController {
         }
         if (telefono == null || telefono.isBlank()) {
             throw new IllegalArgumentException("El teléfono del funcionario no puede estar vacío.");
+        }
+        if (id.trim().contains(" ")) {
+            throw new IllegalArgumentException("El id del funcionario no puede contener espacios.");
+        }
+        // Teléfono: solo dígitos, espacios, guiones, paréntesis o +, con al menos 8 dígitos
+        String soloDigitos = telefono.replaceAll("[^0-9]", "");
+        if (!telefono.trim().matches("[0-9+()\\-\\s]+") || soloDigitos.length() < 8) {
+            throw new IllegalArgumentException("El teléfono no es válido (ej. 8888-8888).");
+        }
+    }
+
+    /** true si el funcionario tiene reservas activas que aún no terminan. */
+    private boolean tieneReservasFuturas(String idFuncionario) throws IOException {
+        List<Reserva> reservas = gestorXML.cargarDatos(rutaReservas);
+        for (Reserva r : reservas) {
+            if (r.estaActiva() && !r.yaPaso() && r.getFuncionario() != null
+                    && idFuncionario.equals(r.getFuncionario().getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Actualiza nombre/teléfono en las copias del funcionario guardadas en reservas.xml. */
+    private void propagarDatos(String idFuncionario, String nombre, String telefono) throws IOException {
+        List<Reserva> reservas = gestorXML.cargarDatos(rutaReservas);
+        boolean cambio = false;
+        for (Reserva r : reservas) {
+            if (r.getFuncionario() != null && idFuncionario.equals(r.getFuncionario().getId())) {
+                r.getFuncionario().setNombre(nombre);
+                r.getFuncionario().setTelefono(telefono);
+                cambio = true;
+            }
+        }
+        if (cambio) {
+            gestorXML.guardarDatos(reservas, rutaReservas);
         }
     }
 

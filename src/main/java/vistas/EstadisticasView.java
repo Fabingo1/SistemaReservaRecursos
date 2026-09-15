@@ -1,17 +1,16 @@
 package vistas;
 
 import controladores.EstadisticasController;
-import servicios.PDFService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,7 +30,6 @@ import java.util.Map;
 public class EstadisticasView extends JPanel {
 
     private final EstadisticasController controller;
-    private final PDFService pdfService;
 
     private JSpinner spinnerDesdeRecursos;
     private JSpinner spinnerHastaRecursos;
@@ -47,7 +45,6 @@ public class EstadisticasView extends JPanel {
 
     public EstadisticasView() {
         this.controller = new EstadisticasController();
-        this.pdfService = new PDFService();
 
         // Layout de dos columnas (Recursos | Actividades) visibles a la vez,
         // igual que en el ejemplo de pantalla del enunciado, en vez de pestañas.
@@ -70,8 +67,10 @@ public class EstadisticasView extends JPanel {
         Calendar haceUnMes = Calendar.getInstance();
         haceUnMes.add(Calendar.MONTH, -1);
 
+        Calendar enUnMes = Calendar.getInstance();
+        enUnMes.add(Calendar.MONTH, 1);
         spinnerDesdeRecursos = crearSpinnerFecha(haceUnMes.getTime());
-        spinnerHastaRecursos = crearSpinnerFecha(new Date());
+        spinnerHastaRecursos = crearSpinnerFecha(enUnMes.getTime());
 
         controles.add(new JLabel("Desde:"));
         controles.add(spinnerDesdeRecursos);
@@ -124,6 +123,8 @@ public class EstadisticasView extends JPanel {
                 modeloTablaRecursos.addRow(new Object[]{e.getKey(), e.getValue()});
             }
             chartRecursos.setDatos(datosRecursosActuales);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Error al leer las reservas: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -136,13 +137,11 @@ public class EstadisticasView extends JPanel {
             return;
         }
         try {
-            List<Object[]> filas = new ArrayList<>();
-            for (Map.Entry<String, Integer> e : datosRecursosActuales.entrySet()) {
-                filas.add(new Object[]{e.getKey(), e.getValue()});
-            }
-            String ruta = "data/reporte_estadisticas_recursos_" + System.currentTimeMillis() + ".pdf";
-            pdfService.generarReporte("Estadisticas de recursos reservados",
-                    new String[]{"Categoria", "Cantidad"}, filas, ruta);
+            String ruta = elegirRutaPdf("estadisticas_recursos.pdf");
+            if (ruta == null) return;
+            controller.generarReportePDF("Estadisticas de recursos reservados ("
+                    + rango(spinnerDesdeRecursos, spinnerHastaRecursos) + ")",
+                    "Categoria", datosRecursosActuales, ruta);
             JOptionPane.showMessageDialog(this, "Reporte generado en: " + ruta,
                     "PDF generado", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException ex) {
@@ -160,11 +159,13 @@ public class EstadisticasView extends JPanel {
         panel.setBorder(BorderFactory.createTitledBorder("Actividades"));
 
         JPanel controles = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        Calendar haceDosMeses = Calendar.getInstance();
-        haceDosMeses.add(Calendar.MONTH, -2);
+        Calendar haceUnMes = Calendar.getInstance();
+        haceUnMes.add(Calendar.MONTH, -1);
+        Calendar enUnMes = Calendar.getInstance();
+        enUnMes.add(Calendar.MONTH, 1);
 
-        spinnerDesdeActividades = crearSpinnerFecha(haceDosMeses.getTime());
-        spinnerHastaActividades = crearSpinnerFecha(new Date());
+        spinnerDesdeActividades = crearSpinnerFecha(haceUnMes.getTime());
+        spinnerHastaActividades = crearSpinnerFecha(enUnMes.getTime());
 
         controles.add(new JLabel("Desde:"));
         controles.add(spinnerDesdeActividades);
@@ -217,6 +218,8 @@ public class EstadisticasView extends JPanel {
                 modeloTablaActividades.addRow(new Object[]{e.getKey(), e.getValue()});
             }
             chartActividades.setDatos(datosActividadesActuales);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Error al leer las reservas: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -229,13 +232,11 @@ public class EstadisticasView extends JPanel {
             return;
         }
         try {
-            List<Object[]> filas = new ArrayList<>();
-            for (Map.Entry<String, Integer> e : datosActividadesActuales.entrySet()) {
-                filas.add(new Object[]{e.getKey(), e.getValue()});
-            }
-            String ruta = "data/reporte_estadisticas_actividades_" + System.currentTimeMillis() + ".pdf";
-            pdfService.generarReporte("Estadisticas de actividades programadas",
-                    new String[]{"Semana", "Cantidad"}, filas, ruta);
+            String ruta = elegirRutaPdf("estadisticas_actividades.pdf");
+            if (ruta == null) return;
+            controller.generarReportePDF("Estadisticas de actividades por semana ("
+                    + rango(spinnerDesdeActividades, spinnerHastaActividades) + ")",
+                    "Semana", datosActividadesActuales, ruta);
             JOptionPane.showMessageDialog(this, "Reporte generado en: " + ruta,
                     "PDF generado", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException ex) {
@@ -247,6 +248,22 @@ public class EstadisticasView extends JPanel {
     // ---------------------------------------------------------------
     // Utilidades
     // ---------------------------------------------------------------
+
+    /** Abre un diálogo "Guardar como" y retorna la ruta elegida (o null si se canceló). */
+    private String elegirRutaPdf(String nombreSugerido) {
+        JFileChooser selector = new JFileChooser();
+        selector.setSelectedFile(new File(nombreSugerido));
+        if (selector.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return null;
+        }
+        String ruta = selector.getSelectedFile().getAbsolutePath();
+        return ruta.toLowerCase().endsWith(".pdf") ? ruta : ruta + ".pdf";
+    }
+
+    private String rango(JSpinner desde, JSpinner hasta) {
+        SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
+        return f.format((Date) desde.getValue()) + " a " + f.format((Date) hasta.getValue());
+    }
 
     private JSpinner crearSpinnerFecha(Date valorInicial) {
         SpinnerDateModel modelo = new SpinnerDateModel();
@@ -270,6 +287,13 @@ public class EstadisticasView extends JPanel {
             repaint();
         }
 
+        /** "07/09/26 - 13/09/26" -> "07/09/26"; textos largos se recortan. */
+        private static String etiquetaCorta(String etiqueta) {
+            int guion = etiqueta.indexOf(" - ");
+            String corta = guion > 0 ? etiqueta.substring(0, guion) : etiqueta;
+            return corta.length() > 16 ? corta.substring(0, 15) + "…" : corta;
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -279,7 +303,7 @@ public class EstadisticasView extends JPanel {
             int ancho = getWidth();
             int alto = getHeight();
             int margenInferior = 70;
-            int margenSuperior = 25;
+            int margenSuperior = 30;
             int margenLateral = 20;
 
             if (datos == null || datos.isEmpty()) {
@@ -292,32 +316,38 @@ public class EstadisticasView extends JPanel {
                 max = Math.max(max, v);
             }
 
+            // Cada barra ocupa un "espacio" proporcional al ancho disponible,
+            // así nunca se salen del panel aunque haya muchas semanas.
             int numBarras = datos.size();
-            int anchoDisponible = ancho - 2 * margenLateral;
-            int anchoBarra = Math.max(18, anchoDisponible / Math.max(1, numBarras) - 15);
+            double espacio = (ancho - 2.0 * margenLateral) / numBarras;
+            int anchoBarra = (int) Math.max(4, espacio * 0.65);
             int alturaDisponible = alto - margenSuperior - margenInferior;
+            // Si las barras son angostas, se muestra solo una de cada N etiquetas
+            int saltoEtiquetas = (int) Math.max(1, Math.ceil(18 / espacio));
 
-            int x = margenLateral;
+            int i = 0;
             for (Map.Entry<String, Integer> entry : datos.entrySet()) {
                 int valor = entry.getValue();
+                int x = (int) (margenLateral + i * espacio + (espacio - anchoBarra) / 2);
                 int alturaBarra = (int) Math.round((valor / (double) max) * alturaDisponible);
                 int y = alto - margenInferior - alturaBarra;
 
                 g2.setColor(new Color(66, 133, 200));
                 g2.fillRect(x, y, anchoBarra, alturaBarra);
-                g2.setColor(Color.DARK_GRAY);
-                g2.drawRect(x, y, anchoBarra, alturaBarra);
 
                 g2.setColor(Color.BLACK);
-                g2.drawString(String.valueOf(valor), x + anchoBarra / 2 - 4, Math.max(12, y - 5));
+                String textoValor = String.valueOf(valor);
+                int anchoValor = g2.getFontMetrics().stringWidth(textoValor);
+                g2.drawString(textoValor, x + (anchoBarra - anchoValor) / 2, Math.max(12, y - 4));
 
-                Graphics2D g2r = (Graphics2D) g2.create();
-                g2r.translate(x + anchoBarra / 2.0 + 4, alto - margenInferior + 14);
-                g2r.rotate(Math.toRadians(35));
-                g2r.drawString(entry.getKey(), 0, 0);
-                g2r.dispose();
-
-                x += anchoBarra + 15;
+                if (i % saltoEtiquetas == 0) {
+                    Graphics2D g2r = (Graphics2D) g2.create();
+                    g2r.translate(x + anchoBarra / 2.0 - 3, alto - margenInferior + 12);
+                    g2r.rotate(Math.toRadians(40));
+                    g2r.drawString(etiquetaCorta(entry.getKey()), 0, 0);
+                    g2r.dispose();
+                }
+                i++;
             }
 
             g2.setColor(Color.GRAY);

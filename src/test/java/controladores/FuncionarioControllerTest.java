@@ -2,6 +2,7 @@ package controladores;
 
 import modelo.Administrador;
 import modelo.Funcionario;
+import modelo.Reserva;
 import servicios.GestorXML;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,11 +24,13 @@ class FuncionarioControllerTest {
 
     private FuncionarioController controller;
     private String rutaAdministradores;
+    private String rutaReservas;
 
     @BeforeEach
     void configurar(@TempDir Path tempDir) {
         String rutaFuncionarios = tempDir.resolve("funcionarios.xml").toString();
         rutaAdministradores = tempDir.resolve("administradores.xml").toString();
+        rutaReservas = tempDir.resolve("reservas.xml").toString();
         controller = new FuncionarioController(rutaFuncionarios, rutaAdministradores);
     }
 
@@ -172,5 +176,41 @@ class FuncionarioControllerTest {
         List<Funcionario> restantes = controller.listar();
         assertEquals(1, restantes.size());
         assertEquals("222", restantes.get(0).getId());
+    }
+
+    @Test
+    void borrar_conReservasFuturas_lanzaExcepcion() throws IOException {
+        Funcionario f = controller.crear("111", "Juan Perez", "8888-1111");
+        Calendar manana = Calendar.getInstance();
+        manana.add(Calendar.DAY_OF_MONTH, 1);
+        Reserva r = new Reserva();
+        r.setId("RES-000001");
+        r.setFecha(manana.getTime());
+        r.setHoraInicio(manana.getTime());
+        r.setHoraFin(manana.getTime());
+        r.setFuncionario(f);
+        new GestorXML().guardarDatos(new ArrayList<>(List.of(r)), rutaReservas);
+
+        assertThrows(IllegalArgumentException.class, () -> controller.borrar("111"));
+        assertNotNull(controller.buscarPorId("111"));
+    }
+
+    @Test
+    void modificar_actualizaNombreEnReservas() throws IOException {
+        Funcionario f = controller.crear("111", "Juan Perez", "8888-1111");
+        Reserva r = new Reserva();
+        r.setId("RES-000001");
+        r.setFuncionario(f);
+        new GestorXML().guardarDatos(new ArrayList<>(List.of(r)), rutaReservas);
+
+        controller.modificar("111", "Juan Perez Solano", "8888-9999");
+
+        List<Reserva> reservas = new GestorXML().cargarDatos(rutaReservas);
+        assertEquals("Juan Perez Solano", reservas.get(0).getFuncionario().getNombre());
+    }
+
+    @Test
+    void crear_telefonoInvalido_lanzaExcepcion() {
+        assertThrows(IllegalArgumentException.class, () -> controller.crear("111", "Juan", "abc"));
     }
 }

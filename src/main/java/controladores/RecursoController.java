@@ -1,7 +1,9 @@
 package controladores;
 
 import modelo.Categoria;
+import modelo.DetalleReserva;
 import modelo.Recurso;
+import modelo.Reserva;
 import servicios.GestorXML;
 import servicios.PDFService;
 
@@ -26,6 +28,7 @@ public class RecursoController {
 
     private final String rutaRecursos;
     private final String rutaCategorias;
+    private final String rutaReservas;
     private final GestorXML gestorXML;
     private final PDFService pdfService;
 
@@ -37,6 +40,7 @@ public class RecursoController {
     public RecursoController(String rutaRecursos, String rutaCategorias) {
         this.rutaRecursos = rutaRecursos;
         this.rutaCategorias = rutaCategorias;
+        this.rutaReservas = CategoriaController.rutaHermana(rutaRecursos, "reservas.xml");
         this.gestorXML = new GestorXML();
         this.pdfService = new PDFService();
     }
@@ -105,7 +109,7 @@ public class RecursoController {
 
         Recurso nuevo = new Recurso();
         nuevo.setId(id.trim());
-        nuevo.setCategoria(categoria);
+        nuevo.setCategoria(buscarCategoriaPorId(categoria.getId())); // copia actualizada desde el XML
         nuevo.setDescripcion(descripcion.trim());
 
         recursos.add(nuevo);
@@ -122,13 +126,24 @@ public class RecursoController {
         if (existente == null) {
             throw new IllegalArgumentException("No existe un recurso con id " + id);
         }
-        existente.setCategoria(nuevaCategoria);
+        boolean cambiaCategoria = existente.getCategoria() == null
+                || !existente.getCategoria().getId().equals(nuevaCategoria.getId());
+        if (cambiaCategoria && tieneReservasFuturas(id)) {
+            throw new IllegalArgumentException("No se puede cambiar la categoría del recurso " + id
+                    + ": tiene reservas activas pendientes.");
+        }
+        existente.setCategoria(buscarCategoriaPorId(nuevaCategoria.getId()));
         existente.setDescripcion(nuevaDescripcion.trim());
 
         gestorXML.guardarDatos(recursos, rutaRecursos);
+        propagarDescripcion(id, nuevaDescripcion.trim());
     }
 
     public void borrar(String id) throws IOException {
+        if (tieneReservasFuturas(id)) {
+            throw new IllegalArgumentException("No se puede borrar el recurso " + id
+                    + ": tiene reservas activas pendientes. Deben cancelarse primero.");
+        }
         List<Recurso> recursos = listar();
         boolean eliminado = recursos.removeIf(r -> r.getId().equals(id));
 
@@ -164,6 +179,37 @@ public class RecursoController {
         // haya quedado desactualizado en la UI.
         if (buscarCategoriaPorId(categoria.getId()) == null) {
             throw new IllegalArgumentException("La categoría seleccionada ya no existe.");
+        }
+    }
+
+    /** true si el recurso está asignado a alguna reserva activa que aún no terminó. */
+    private boolean tieneReservasFuturas(String idRecurso) throws IOException {
+        List<Reserva> reservas = gestorXML.cargarDatos(rutaReservas);
+        for (Reserva r : reservas) {
+            if (!r.estaActiva() || r.yaPaso()) continue;
+            for (DetalleReserva d : r.getDetalles()) {
+                if (d.getRecursoAsignado() != null && idRecurso.equals(d.getRecursoAsignado().getId())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** Actualiza la descripción del recurso en las copias guardadas dentro de reservas.xml. */
+    private void propagarDescripcion(String idRecurso, String nuevaDescripcion) throws IOException {
+        List<Reserva> reservas = gestorXML.cargarDatos(rutaReservas);
+        boolean cambio = false;
+        for (Reserva r : reservas) {
+            for (DetalleReserva d : r.getDetalles()) {
+                if (d.getRecursoAsignado() != null && idRecurso.equals(d.getRecursoAsignado().getId())) {
+                    d.getRecursoAsignado().setDescripcion(nuevaDescripcion);
+                    cambio = true;
+                }
+            }
+        }
+        if (cambio) {
+            gestorXML.guardarDatos(reservas, rutaReservas);
         }
     }
 
