@@ -12,12 +12,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Controlador de la funcionalidad "Lista de categorías de recursos"
- * (funcionalidad 4 del enunciado). Solo debe ser accesible para el
- * usuario tipo administrador; esa restricción de rol se maneja desde
- * MainView (igual que ya se hace con las demás pestañas), no aquí.
- */
 public class CategoriaController {
 
     private static final String RUTA_CATEGORIAS_POR_DEFECTO = "data/categorias.xml";

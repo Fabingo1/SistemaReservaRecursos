@@ -14,15 +14,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Vista de la funcionalidad 7: "Visualización de programación de
- * actividades". Muestra una matriz semanal (filas = horas del día,
- * columnas = días de la semana) con las actividades programadas.
- *
- * Se implementa como JPanel (no JFrame) para poder incrustarse como pestaña
- * tanto en la vista de Funcionario como en la de Administrador, ya que el
- * enunciado indica que ambos roles pueden usar esta funcionalidad.
- */
+
 public class ActividadesView extends JPanel implements Refrescable {
 
     private static final String[] NOMBRES_DIAS =
@@ -103,7 +95,12 @@ public class ActividadesView extends JPanel implements Refrescable {
 
         tablaActividades = new JTable(modeloTabla);
         tablaActividades.setRowHeight(45);
+        tablaActividades.setShowGrid(true);
+        tablaActividades.setGridColor(new Color(90, 94, 100));
+        tablaActividades.setIntercellSpacing(new Dimension(1, 1));
         tablaActividades.getTableHeader().setReorderingAllowed(false);
+        tablaActividades.getTableHeader().setBackground(new Color(66, 133, 200));
+        tablaActividades.getTableHeader().setForeground(Color.WHITE);
         tablaActividades.setDefaultRenderer(Object.class, new CeldaActividadRenderer());
 
         JScrollPane scroll = new JScrollPane(tablaActividades);
@@ -226,7 +223,7 @@ public class ActividadesView extends JPanel implements Refrescable {
     private static class CeldaActividadRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                                                         boolean hasFocus, int row, int column) {
+                                                       boolean hasFocus, int row, int column) {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             setVerticalAlignment(SwingConstants.TOP);
             return c;

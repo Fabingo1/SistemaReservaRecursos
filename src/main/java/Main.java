@@ -4,11 +4,13 @@ import servicios.GenerarDatosPrueba;
 import vistas.LoginView;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Collections;
 
 public class Main {
     public static void main(String[] args) {
         FlatLaf.setGlobalExtraDefaults(Collections.singletonMap("@accentColor", "#4285C8"));
+        UIManager.put("TitledBorder.titleColor", new Color(0x4285C8));
         FlatDarkLaf.setup();
 
         // Si es la primera ejecución (data/ vacío, p. ej. recién clonado el repo),

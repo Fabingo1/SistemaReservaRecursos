@@ -50,7 +50,14 @@ public class CalendarizacionView extends JPanel implements Refrescable {
         };
         tablaMatriz = new JTable(modeloTabla);
         tablaMatriz.setRowHeight(30);
+        tablaMatriz.setShowGrid(true);
+        tablaMatriz.setGridColor(new Color(90, 94, 100));
+        tablaMatriz.setIntercellSpacing(new Dimension(1, 1));
         tablaMatriz.getTableHeader().setReorderingAllowed(false);
+        tablaMatriz.getTableHeader().setBackground(new Color(66, 133, 200));
+        tablaMatriz.getTableHeader().setForeground(Color.WHITE);
+        tablaMatriz.setDefaultRenderer(Object.class, new CeldaReservaRenderer());
+        add(new JScrollPane(tablaMatriz), BorderLayout.CENTER);
         tablaMatriz.setDefaultRenderer(Object.class, new CeldaReservaRenderer());
         add(new JScrollPane(tablaMatriz), BorderLayout.CENTER);
 

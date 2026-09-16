@@ -17,7 +17,7 @@ public class LoginView extends JFrame {
         controller = new LoginController();
 
         setTitle("Sistema de Reserva de Recursos - Login");
-        setSize(370, 220);
+        setSize(370, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -26,35 +26,45 @@ public class LoginView extends JFrame {
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0;
+        JLabel lblAvatar = new JLabel("👤", SwingConstants.CENTER);
+        lblAvatar.setFont(lblAvatar.getFont().deriveFont(48f));
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.insets = new Insets(12, 8, 4, 8);
+        panel.add(lblAvatar, gbc);
+
+        gbc.gridwidth = 1;
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.gridx = 0; gbc.gridy = 1;
         panel.add(new JLabel("ID:"), gbc);
 
         txtId = new JTextField(15);
         gbc.gridx = 1;
         panel.add(txtId, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0; gbc.gridy = 2;
         panel.add(new JLabel("Clave:"), gbc);
 
         txtClave = new JPasswordField(15);
         gbc.gridx = 1;
         panel.add(txtClave, gbc);
 
-        JButton btnLogin = new JButton("Ingresar");
-        JButton btnCancelar = new JButton("Cancelar");
-        JButton btnCambiar = new JButton("Cambiar clave");
+        JButton btnLogin = new JButton("🔓 Ingresar");
+        JButton btnCancelar = new JButton("✕ Cancelar");
+        JButton btnCambiar = new JButton("🔑 Cambiar clave");
 
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         panelBotones.add(btnLogin);
         panelBotones.add(btnCancelar);
         panelBotones.add(btnCambiar);
 
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
         panel.add(panelBotones, gbc);
 
         btnLogin.addActionListener(e -> intentarLogin());
         btnCancelar.addActionListener(e -> System.exit(0));
         btnCambiar.addActionListener(e -> abrirCambiarClave());
+
+        getRootPane().setDefaultButton(btnLogin);
 
         add(panel);
     }

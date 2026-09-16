@@ -145,6 +145,13 @@ public class ReservaView extends JPanel implements Refrescable {
         };
         tablaReservas = new JTable(modeloTabla);
         tablaReservas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tablaReservas.setRowHeight(28);
+        tablaReservas.setShowGrid(true);
+        tablaReservas.setGridColor(new Color(90, 94, 100));
+        tablaReservas.setIntercellSpacing(new Dimension(1, 1));
+        tablaReservas.getTableHeader().setBackground(new Color(66, 133, 200));
+        tablaReservas.getTableHeader().setForeground(Color.WHITE);
+        tablaReservas.setDefaultRenderer(Object.class, new EstadoCellRenderer());
         panel.add(new JScrollPane(tablaReservas), BorderLayout.CENTER);
 
         JButton btnImprimir = new JButton("Imprimir (PDF)");
@@ -231,7 +238,7 @@ public class ReservaView extends JPanel implements Refrescable {
     private void extraerConIA() {
         String frase = txtFrase.getText().trim();
         if (frase.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Escriba una frase describiendo la reserva primero.");
+            JOptionPane.showMessageDialog(this, "Escribí una frase describiendo la reserva primero.");
             return;
         }
 
@@ -394,6 +401,25 @@ public class ReservaView extends JPanel implements Refrescable {
             }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "No se pudieron cargar sus reservas: " + e.getMessage());
+        }
+    }
+
+    /** Pinta la columna Estado: verde si ACTIVA, gris si CANCELADA. */
+    private static class EstadoCellRenderer extends javax.swing.table.DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                       boolean hasFocus, int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if (!isSelected) {
+                if (column == 5 && "ACTIVA".equals(String.valueOf(value))) {
+                    c.setForeground(new Color(102, 187, 106));
+                } else if (column == 5 && "CANCELADA".equals(String.valueOf(value))) {
+                    c.setForeground(new Color(158, 158, 158));
+                } else {
+                    c.setForeground(table.getForeground());
+                }
+            }
+            return c;
         }
     }
 }

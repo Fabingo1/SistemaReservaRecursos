@@ -13,10 +13,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Controlador de la funcionalidad 6: "Visualización de calendarización de
- * recursos" (matriz hora x recurso para una fecha y categoría).
- */
 public class CalendarizacionController {
 
     private final String rutaCategorias;
@@ -30,7 +26,7 @@ public class CalendarizacionController {
         this("data");
     }
 
-    /** Permite usar otra carpeta de datos (pruebas con @TempDir). */
+    // Permite usar otra carpeta de datos
     public CalendarizacionController(String carpetaDatos) {
         this.rutaCategorias = new File(carpetaDatos, "categorias.xml").getPath();
         this.rutaRecursos = new File(carpetaDatos, "recursos.xml").getPath();
@@ -65,10 +61,7 @@ public class CalendarizacionController {
         return delDia;
     }
 
-    /**
-     * Retorna la reserva que tiene asignado ese recurso en esa hora del día
-     * (o null si está libre). Usa Reserva.ocupaHora, que considera minutos.
-     */
+    //Retorna la reserva que tiene asignado ese recurso en esa hora del día
     public Reserva buscarReservaEnCelda(List<Reserva> reservasDelDia, Recurso recurso, int hora) {
         for (Reserva r : reservasDelDia) {
             for (DetalleReserva d : r.getDetalles()) {
@@ -82,13 +75,11 @@ public class CalendarizacionController {
         return null;
     }
 
-    /** Texto de la celda: actividad y funcionario responsable. */
     public String descripcionCelda(Reserva r) {
         String nombre = r.getFuncionario() != null ? r.getFuncionario().getNombre() : "N/D";
         return r.getActividad() + " (" + nombre + ")";
     }
 
-    /** Reporte PDF de la matriz (la vista le pasa las filas ya armadas). */
     public void generarReportePDF(String titulo, String[] columnas, List<Object[]> filas, String rutaSalida)
             throws IOException {
         pdfService.generarReporte(titulo, columnas, filas, rutaSalida);

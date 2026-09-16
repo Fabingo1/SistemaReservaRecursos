@@ -55,9 +55,33 @@ public class MainView extends JFrame {
         tabs.addTab("📋 Actividades", new ActividadesView());
         tabs.addTab("📊 Estadísticas", new EstadisticasView());
 
+        Color[] coloresTabs = esAdmin
+                ? new Color[]{new Color(0x4285C8), new Color(0xEC407A), new Color(0xFFC107),
+                new Color(0x26A69A), new Color(0x7E57C2), new Color(0xFF9800)}
+                : new Color[]{new Color(0x4285C8), new Color(0x26A69A), new Color(0x7E57C2), new Color(0xFF9800)};
+
+        Runnable actualizarColoresTabs = () -> {
+            int seleccionada = tabs.getSelectedIndex();
+            for (int i = 0; i < tabs.getTabCount(); i++) {
+                Color base = coloresTabs[i];
+                if (i == seleccionada) {
+                    tabs.setBackgroundAt(i, base);
+                } else {
+                    // No seleccionada: el mismo color, atenuado hacia el gris de fondo,
+                    // para que la pestaña activa sea la única que resalte de verdad.
+                    int r = (base.getRed() + 60 * 2) / 3;
+                    int g = (base.getGreen() + 63 * 2) / 3;
+                    int b = (base.getBlue() + 68 * 2) / 3;
+                    tabs.setBackgroundAt(i, new Color(r, g, b));
+                }
+            }
+        };
+        actualizarColoresTabs.run();
+
         // Al cambiar de pestaña se recargan los datos (p. ej. una categoría nueva
-        // aparece en Recursos sin reiniciar la aplicación).
+        // aparece en Recursos sin reiniciar la aplicación), y se recalculan los colores.
         tabs.addChangeListener(e -> {
+            actualizarColoresTabs.run();
             Component seleccionada = tabs.getSelectedComponent();
             if (seleccionada instanceof Refrescable) {
                 ((Refrescable) seleccionada).refrescar();

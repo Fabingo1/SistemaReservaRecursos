@@ -148,6 +148,11 @@ public class RecursoView extends JPanel implements Refrescable {
         };
         tablaListado = new JTable(modeloTabla);
         tablaListado.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tablaListado.setShowGrid(true);
+        tablaListado.setGridColor(new Color(90, 94, 100));
+        tablaListado.setIntercellSpacing(new Dimension(1, 1));
+        tablaListado.getTableHeader().setBackground(new Color(66, 133, 200));
+        tablaListado.getTableHeader().setForeground(Color.WHITE);
         tablaListado.getSelectionModel().addListSelectionListener(this::alSeleccionarFila);
 
         JScrollPane scroll = new JScrollPane(tablaListado);
