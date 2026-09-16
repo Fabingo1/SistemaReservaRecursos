@@ -12,16 +12,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Vista de la funcionalidad "Lista de Funcionarios" (funcionalidad 3). El id
- * lo asigna el administrador y solo es editable al crear uno nuevo; una vez
- * seleccionado un funcionario existente queda bloqueado, porque
- * FuncionarioController no permite cambiarlo (ni la clave) desde este CRUD.
- *
- * El enunciado pide búsqueda "por id o nombre": se ofrecen dos campos
- * separados (igual que el mockup), pero solo se usa uno a la vez — si el
- * campo Id tiene texto, se busca por id; si no, se busca por nombre.
- */
+// El id queda bloqueado al seleccionar un funcionario existente (FuncionarioController no lo deja cambiar).
+// Búsqueda: si el campo Id tiene texto se usa ese; si no, se busca por nombre.
 public class FuncionarioView extends JPanel implements Refrescable {
 
     private final FuncionarioController controller;

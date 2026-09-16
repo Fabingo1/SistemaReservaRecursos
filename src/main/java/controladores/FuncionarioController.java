@@ -10,17 +10,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Controlador de la funcionalidad "Lista de Funcionarios" (funcionalidad 3
- * del enunciado). Solo accesible para el usuario tipo administrador; esa
- * restricción de rol se maneja desde MainView, igual que en las demás
- * pestañas.
- *
- * El id del funcionario lo asigna el administrador (no se autogenera, el
- * enunciado no lo pide). Al crear un funcionario, su clave queda igual al
- * id; cambiarla después es responsabilidad de la funcionalidad 1
- * (Ingreso/cambio de clave), no de este controlador.
- */
+// El id lo asigna el administrador (no se autogenera). La clave inicial queda igual al id;
+// cambiarla es responsabilidad de LoginController, no de este controlador.
 public class FuncionarioController {
 
     private static final String RUTA_FUNCIONARIOS_POR_DEFECTO = "data/funcionarios.xml";
@@ -49,11 +40,7 @@ public class FuncionarioController {
         return gestorXML.cargarDatos(rutaFuncionarios);
     }
 
-    /**
-     * Búsqueda por id o nombre (coincidencia parcial, sin distinguir
-     * mayúsculas/minúsculas), tal como lo pide el enunciado. Si el texto
-     * viene vacío, retorna todos.
-     */
+    /** Búsqueda parcial por id o nombre, sin distinguir mayúsculas; texto vacío retorna todos. */
     public List<Funcionario> buscar(String texto) throws IOException {
         List<Funcionario> todos = listar();
         if (texto == null || texto.isBlank()) {
@@ -81,7 +68,6 @@ public class FuncionarioController {
         return null;
     }
 
-    /** Inclusión. La clave inicial queda igual al id, como pide el enunciado. */
     public Funcionario crear(String id, String nombre, String telefono) throws IOException {
         validarDatos(id, nombre, telefono);
         List<Funcionario> funcionarios = listar();
@@ -105,12 +91,7 @@ public class FuncionarioController {
         return nuevo;
     }
 
-    /**
-     * Modificación: el id y la clave NO se tocan aquí. El id es la clave
-     * primaria del registro, y la clave del usuario se administra desde la
-     * funcionalidad de "Cambiar clave" (funcionalidad 1), no desde el CRUD
-     * de administrador.
-     */
+    /** El id y la clave no se tocan aquí: la clave se administra desde "Cambiar clave", no desde este CRUD. */
     public void modificar(String id, String nuevoNombre, String nuevoTelefono) throws IOException {
         validarDatos(id, nuevoNombre, nuevoTelefono);
         List<Funcionario> funcionarios = listar();
@@ -141,7 +122,6 @@ public class FuncionarioController {
         gestorXML.guardarDatos(funcionarios, rutaFuncionarios);
     }
 
-    /** Reporte en PDF, requerido por el enunciado para todas las funcionalidades. */
     public void generarReportePDF(List<Funcionario> funcionarios, String rutaSalida) throws IOException {
         List<Object[]> filas = new ArrayList<>();
         for (Funcionario f : funcionarios) {

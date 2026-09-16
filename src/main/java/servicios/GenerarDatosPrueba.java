@@ -9,16 +9,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Genera datos iniciales en la carpeta data/. Main lo llama al arrancar:
- * si todavía no existe administradores.xml (por ejemplo, recién clonado el
- * repositorio, ya que data/*.xml está en .gitignore) se crean los datos de
- * prueba; si ya existen, NO se toca nada.
- *
- * Usuarios creados:  admin1 / admin1  (administrador)
- *                    func1  / func1   (funcionario)
- *                    func2  / func2   (funcionario)
- */
+// Main la llama al arrancar si administradores.xml aún no existe (repo recién clonado, data/*.xml está en .gitignore).
+// Usuarios creados: admin1/admin1 (administrador), func1/func1 y func2/func2 (funcionarios).
 public class GenerarDatosPrueba {
 
     public static void main(String[] args) throws IOException {
@@ -26,7 +18,6 @@ public class GenerarDatosPrueba {
         System.out.println("Datos de prueba generados en data/");
     }
 
-    /** Genera los datos solo si la carpeta aún no tiene usuarios. Retorna true si generó. */
     public static boolean generarSiNoExisten(String carpeta) throws IOException {
         if (new File(carpeta, "administradores.xml").exists()) {
             return false;
@@ -39,7 +30,6 @@ public class GenerarDatosPrueba {
     public static void generar(String carpeta) throws IOException {
         GestorXML gestor = new GestorXML();
 
-        // --- Administrador ---
         Administrador admin = new Administrador();
         admin.setId("admin1");
         admin.setClave("admin1");
@@ -47,7 +37,6 @@ public class GenerarDatosPrueba {
         admins.add(admin);
         gestor.guardarDatos(admins, ruta(carpeta, "administradores.xml"));
 
-        // --- Funcionarios (clave inicial = id, como pide el enunciado) ---
         Funcionario func1 = crearFuncionario("func1", "Juan Pérez", "8888-8888");
         Funcionario func2 = crearFuncionario("func2", "María Solís", "8777-7777");
         List<Funcionario> funcionarios = new ArrayList<>();
@@ -55,7 +44,6 @@ public class GenerarDatosPrueba {
         funcionarios.add(func2);
         gestor.guardarDatos(funcionarios, ruta(carpeta, "funcionarios.xml"));
 
-        // --- Categorías ---
         Categoria catSala = crearCategoria("CAT-001", "Sala para 10 personas");
         Categoria catLaptop = crearCategoria("CAT-002", "Laptop windows 11");
         Categoria catProyector = crearCategoria("CAT-003", "Proyector");
@@ -65,7 +53,6 @@ public class GenerarDatosPrueba {
         categorias.add(catProyector);
         gestor.guardarDatos(categorias, ruta(carpeta, "categorias.xml"));
 
-        // --- Recursos ---
         Recurso sala1 = crearRecurso("SALA-1", catSala, "Sala 1 primer piso");
         Recurso sala2 = crearRecurso("SALA-2", catSala, "Sala 2 segundo piso");
         Recurso laptop1 = crearRecurso("238715", catLaptop, "Laptop #238715");
@@ -79,8 +66,7 @@ public class GenerarDatosPrueba {
         recursos.add(proyector1);
         gestor.guardarDatos(recursos, ruta(carpeta, "recursos.xml"));
 
-        // --- Reservas: relativas a la fecha actual para que las matrices
-        //     y estadísticas muestren datos al abrir el programa ---
+        // Fechas relativas a hoy para que las matrices y estadísticas muestren datos al abrir el programa.
         List<Reserva> reservas = new ArrayList<>();
         reservas.add(crearReserva("RES-000001", "Sesión de Junta Directiva", diasDesdeHoy(1), 9, 0, 11, 0,
                 func1, new Categoria[]{catSala, catProyector}, new Recurso[]{sala1, proyector1}));

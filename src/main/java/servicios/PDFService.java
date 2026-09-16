@@ -14,18 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Servicio genérico para generar reportes en PDF a partir de un título, un
- * arreglo de columnas y una lista de filas. Es reutilizable por cualquier
- * funcionalidad del sistema (Reservas, Funcionarios, Categorías, Recursos,
- * Calendarización, Actividades, Estadísticas), tal como lo exige el
- * enunciado ("Todas las funcionalidades deben incluir la opción de generar
- * reporte en formato PDF").
- *
- * Uso típico desde una vista o controlador:
- *   PDFService pdf = new PDFService();
- *   pdf.generarReporte("Mis reservas", new String[]{"Actividad", "Fecha"}, filas, "data/reporte.pdf");
- */
+// Servicio genérico de tabla -> PDF, reutilizado por todas las funcionalidades del sistema.
 public class PDFService {
 
     private static final float MARGEN = 40f;
@@ -33,17 +22,7 @@ public class PDFService {
     private static final float TAMANO_TITULO = 16f;
     private static final float TAMANO_TEXTO = 10f;
 
-    /**
-     * Genera un PDF tabular con paginación automática cuando las filas no
-     * caben en una sola página carta.
-     *
-     * @param titulo      título del reporte, mostrado en la parte superior
-     * @param columnas    encabezados de columna
-     * @param filas       filas de datos; cada Object[] debe tener el mismo
-     *                    tamaño que columnas (se usa toString() de cada valor)
-     * @param rutaSalida  ruta del archivo .pdf a generar (se crean las
-     *                    carpetas necesarias si no existen)
-     */
+    /** Pagina automáticamente cuando las filas no caben en una sola página carta. */
     public void generarReporte(String titulo, String[] columnas, List<Object[]> filas, String rutaSalida)
             throws IOException {
 
@@ -148,12 +127,7 @@ public class PDFService {
         return y - ALTO_FILA;
     }
 
-    /**
-     * Las fuentes estándar de PDFBox (Helvetica) pueden fallar con
-     * IllegalArgumentException ante ciertos caracteres fuera de su
-     * codificación. Para evitar romper la generación del reporte por una
-     * tilde o una ñ, se normalizan antes de escribir.
-     */
+    /** Helvetica (PDFBox) falla con tildes/ñ fuera de su codificación; se normalizan antes de escribir. */
     private String limpiar(String texto) {
         if (texto == null) return "";
         String limpio = texto
@@ -169,7 +143,6 @@ public class PDFService {
         return sb.toString();
     }
 
-    /** Recorta el texto (agregando "...") para que quepa en el ancho de la columna. */
     private String ajustarAncho(String texto, PDFont fuente, float tamano, float anchoMaximo) throws IOException {
         if (anchoTexto(texto, fuente, tamano) <= anchoMaximo) return texto;
         String puntos = "...";

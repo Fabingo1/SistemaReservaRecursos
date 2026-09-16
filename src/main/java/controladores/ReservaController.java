@@ -13,13 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Controlador de la funcionalidad 2 (Reservas). Solo la usa el funcionario;
- * esa restricción de rol se maneja desde MainView.
- *
- * Todas las validaciones de negocio viven aquí (no solo en la vista), para
- * que cualquier cliente del controlador (vista, IA, pruebas) quede protegido.
- */
+// Validaciones de negocio centralizadas aquí (no en la vista) para proteger a cualquier cliente: vista, IA, pruebas.
 public class ReservaController {
 
     private static final String CARPETA_POR_DEFECTO = "data";
@@ -59,11 +53,7 @@ public class ReservaController {
         return misReservas;
     }
 
-    /**
-     * Intenta registrar la reserva. Lanza IllegalArgumentException si los
-     * datos son inválidos; si son válidos pero falta disponibilidad, retorna
-     * un ResultadoReserva de fallo con las categorías no disponibles.
-     */
+    /** Lanza IllegalArgumentException si los datos son inválidos; si falta disponibilidad, retorna un ResultadoReserva de fallo. */
     public ResultadoReserva crearReserva(Funcionario funcionario, String actividad, Date fecha,
                                          Date horaInicio, Date horaFin,
                                          List<Categoria> categoriasSolicitadas) throws IOException {
@@ -109,10 +99,6 @@ public class ReservaController {
         return ResultadoReserva.exito(nuevaReserva);
     }
 
-    /**
-     * Cancela una reserva futura del funcionario indicado, liberando sus
-     * recursos (al quedar CANCELADA deja de contar para la disponibilidad).
-     */
     public void cancelarReserva(String idReserva, Funcionario funcionario) throws IOException {
         List<Reserva> todas = gestorXML.cargarDatos(rutaReservas);
         Reserva reserva = buscarPorId(todas, idReserva);
@@ -139,7 +125,6 @@ public class ReservaController {
         cancelarReserva(idReserva, null);
     }
 
-    /** Reporte PDF de las reservas mostradas (requerido por el enunciado). */
     public void generarReportePDF(List<Reserva> reservas, String titulo, String rutaSalida) throws IOException {
         SimpleDateFormat sdfFecha = new SimpleDateFormat("dd/MM/yyyy");
         SimpleDateFormat sdfHora = new SimpleDateFormat("HH:mm");
@@ -159,7 +144,6 @@ public class ReservaController {
                 filas, rutaSalida);
     }
 
-    /** Texto con los recursos asignados, para tabla y PDF. */
     public String textoRecursos(Reserva r) {
         StringBuilder sb = new StringBuilder();
         for (DetalleReserva d : r.getDetalles()) {
@@ -171,9 +155,7 @@ public class ReservaController {
         return sb.toString();
     }
 
-    // ------------------------------------------------------------------
-    // Disponibilidad (package-private para las pruebas unitarias)
-    // ------------------------------------------------------------------
+    // Package-private para que las pruebas unitarias accedan directo.
 
     Recurso buscarRecursoDisponible(Categoria categoria, List<Recurso> todosLosRecursos,
                                     List<Reserva> todasLasReservas, Date fecha, Date horaInicio, Date horaFin) {
@@ -215,10 +197,6 @@ public class ReservaController {
         int f2 = Reserva.minutosDelDia(fin2);
         return i1 < f2 && i2 < f1;
     }
-
-    // ------------------------------------------------------------------
-    // Validaciones y utilidades privadas
-    // ------------------------------------------------------------------
 
     private void validarDatos(Funcionario funcionario, String actividad, Date fecha,
                               Date horaInicio, Date horaFin, List<Categoria> categorias) {

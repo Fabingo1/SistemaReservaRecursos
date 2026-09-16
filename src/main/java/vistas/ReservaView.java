@@ -20,11 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Vista de la funcionalidad 2 (Reservas), solo para funcionarios.
- * Las validaciones de negocio están en ReservaController; aquí solo se
- * leen los campos y se muestran los mensajes.
- */
+// Las validaciones de negocio están en ReservaController; aquí solo se leen los campos y se muestran mensajes.
 public class ReservaView extends JPanel implements Refrescable {
     private final ReservaController controller;
     private final Funcionario funcionarioActual;
@@ -125,8 +121,6 @@ public class ReservaView extends JPanel implements Refrescable {
         btnReservar.addActionListener(e -> reservar());
         btnCancelar.addActionListener(e -> cancelarSeleccionada());
         btnExtraer.addActionListener(e -> extraerConIA());
-        // "Limpiar" deja el formulario en blanco pero NO borra lo del intento
-        // fallido automáticamente: así el funcionario puede corregir y reintentar.
         btnLimpiar.addActionListener(e -> limpiarFormulario());
 
         return panel;
@@ -192,7 +186,7 @@ public class ReservaView extends JPanel implements Refrescable {
                 limpiarFormulario();
                 cargarMisReservas();
             } else {
-                // No se limpia el formulario: el funcionario puede cambiar datos y reintentar.
+                // No se limpia: el funcionario puede cambiar datos y reintentar.
                 StringBuilder mensaje = new StringBuilder("No hubo disponibilidad para:\n");
                 for (Categoria c : resultado.getCategoriasNoDisponibles()) {
                     mensaje.append("- ").append(c.getDescripcion()).append("\n");
@@ -404,7 +398,6 @@ public class ReservaView extends JPanel implements Refrescable {
         }
     }
 
-    /** Pinta la columna Estado: verde si ACTIVA, gris si CANCELADA. */
     private static class EstadoCellRenderer extends javax.swing.table.DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,

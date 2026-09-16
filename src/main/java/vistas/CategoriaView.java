@@ -12,11 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Vista de la funcionalidad "Lista de categorías de recursos" (funcionalidad 4).
- * Layout inspirado en el mockup del enunciado: panel de búsqueda arriba,
- * formulario de la categoría seleccionada/nueva en medio, listado abajo.
- */
 public class CategoriaView extends JPanel implements Refrescable {
 
     private final CategoriaController controller;

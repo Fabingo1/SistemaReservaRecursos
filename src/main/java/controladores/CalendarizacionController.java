@@ -61,7 +61,6 @@ public class CalendarizacionController {
         return delDia;
     }
 
-    //Retorna la reserva que tiene asignado ese recurso en esa hora del día
     public Reserva buscarReservaEnCelda(List<Reserva> reservasDelDia, Recurso recurso, int hora) {
         for (Reserva r : reservasDelDia) {
             for (DetalleReserva d : r.getDetalles()) {

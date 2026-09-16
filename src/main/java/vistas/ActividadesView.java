@@ -21,8 +21,7 @@ public class ActividadesView extends JPanel implements Refrescable {
             {"Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"};
     private static final SimpleDateFormat FORMATO_ENCABEZADO = new SimpleDateFormat("dd/MM");
 
-    // El enunciado pide "cada hora del día": se muestran las 24 horas.
-    // Se hace scroll automático a las 7:00 para que se vea el horario laboral.
+    // Scroll automático a las 7:00 para que se vea el horario laboral.
     private static final int HORA_INICIO = 0;
     private static final int HORA_FIN = 24; // exclusivo
     private static final int HORA_SCROLL_INICIAL = 7;

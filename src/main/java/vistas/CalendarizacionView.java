@@ -16,14 +16,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Vista de la funcionalidad 6: "Visualización de calendarización de
- * recursos". Filas = horas del día (las 24), columnas = recursos de la
- * categoría seleccionada. Disponible para administrador y funcionario.
- */
+// Matriz: filas = horas del día, columnas = recursos de la categoría seleccionada.
 public class CalendarizacionView extends JPanel implements Refrescable {
 
-    // El enunciado pide "cada hora del día": se muestran las 24 horas.
     private static final int HORA_INICIO = 0;
     private static final int HORA_FIN = 24; // exclusivo
     private static final int HORA_SCROLL_INICIAL = 7;
@@ -56,8 +51,6 @@ public class CalendarizacionView extends JPanel implements Refrescable {
         tablaMatriz.getTableHeader().setReorderingAllowed(false);
         tablaMatriz.getTableHeader().setBackground(new Color(66, 133, 200));
         tablaMatriz.getTableHeader().setForeground(Color.WHITE);
-        tablaMatriz.setDefaultRenderer(Object.class, new CeldaReservaRenderer());
-        add(new JScrollPane(tablaMatriz), BorderLayout.CENTER);
         tablaMatriz.setDefaultRenderer(Object.class, new CeldaReservaRenderer());
         add(new JScrollPane(tablaMatriz), BorderLayout.CENTER);
 
@@ -217,7 +210,6 @@ public class CalendarizacionView extends JPanel implements Refrescable {
         }
     }
 
-    /** Pinta de color las celdas reservadas para que se distingan de las libres. */
     private static class CeldaReservaRenderer extends DefaultTableCellRenderer {
         private static final Color COLOR_RESERVADO = new Color(255, 224, 178);
         private static final Color TEXTO_RESERVADO = Color.BLACK;

@@ -11,16 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Controlador de la funcionalidad "Lista de recursos" (funcionalidad 5 del
- * enunciado). Solo accesible para el usuario tipo administrador; esa
- * restricción de rol se maneja desde MainView, igual que en las demás
- * pestañas.
- *
- * A diferencia de CategoriaController, aquí el id NO se autogenera: el
- * enunciado pide "su id o número de activo" (ej. "Laptop #238715"), es
- * decir, lo ingresa el administrador y debe ser único.
- */
+// A diferencia de CategoriaController, aquí el id (número de activo) NO se autogenera: lo ingresa el administrador.
 public class RecursoController {
 
     private static final String RUTA_RECURSOS_POR_DEFECTO = "data/recursos.xml";
@@ -45,7 +36,6 @@ public class RecursoController {
         this.pdfService = new PDFService();
     }
 
-    /** Para llenar el combo de categorías en la vista (igual que CalendarizacionController). */
     public List<Categoria> obtenerCategorias() throws IOException {
         return gestorXML.cargarDatos(rutaCategorias);
     }
@@ -54,11 +44,7 @@ public class RecursoController {
         return gestorXML.cargarDatos(rutaRecursos);
     }
 
-    /**
-     * Filtrado combinado: por categoría (obligatoria en el mockup del
-     * enunciado) y opcionalmente por texto de descripción. Cualquiera de
-     * los dos parámetros puede venir nulo/vacío para no aplicar ese filtro.
-     */
+    /** Categoría y texto son independientes: cualquiera puede venir nulo/vacío para no aplicar ese filtro. */
     public List<Recurso> buscar(Categoria categoria, String textoDescripcion) throws IOException {
         List<Recurso> base = filtrarPorCategoria(categoria);
 
@@ -98,7 +84,6 @@ public class RecursoController {
         return null;
     }
 
-    /** Inclusión. El id lo escribe el administrador (número de activo). */
     public Recurso crear(String id, Categoria categoria, String descripcion) throws IOException {
         validar(id, categoria, descripcion);
         List<Recurso> recursos = listar();
@@ -117,7 +102,6 @@ public class RecursoController {
         return nuevo;
     }
 
-    /** Modificación: el id no cambia (es la clave del recurso), solo categoría y descripción. */
     public void modificar(String id, Categoria nuevaCategoria, String nuevaDescripcion) throws IOException {
         validar(id, nuevaCategoria, nuevaDescripcion);
         List<Recurso> recursos = listar();
@@ -154,7 +138,6 @@ public class RecursoController {
         gestorXML.guardarDatos(recursos, rutaRecursos);
     }
 
-    /** Reporte en PDF, requerido por el enunciado para todas las funcionalidades. */
     public void generarReportePDF(List<Recurso> recursos, String rutaSalida) throws IOException {
         List<Object[]> filas = new ArrayList<>();
         for (Recurso r : recursos) {
@@ -174,9 +157,7 @@ public class RecursoController {
         if (descripcion == null || descripcion.isBlank()) {
             throw new IllegalArgumentException("La descripción del recurso no puede estar vacía.");
         }
-        // La categoría debe ser una de las disponibles (enunciado: "categoría
-        // seleccionada de las disponibles"), no un objeto cualquiera que
-        // haya quedado desactualizado en la UI.
+        // Rechaza una categoría desactualizada en la UI (ya borrada del XML).
         if (buscarCategoriaPorId(categoria.getId()) == null) {
             throw new IllegalArgumentException("La categoría seleccionada ya no existe.");
         }

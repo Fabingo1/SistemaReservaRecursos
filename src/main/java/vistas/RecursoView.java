@@ -13,12 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Vista de la funcionalidad "Lista de recursos" (funcionalidad 5). El id del
- * recurso lo escribe el administrador (número de activo) y solo es editable
- * al crear uno nuevo; una vez seleccionado un recurso existente el id queda
- * bloqueado, porque RecursoController no permite cambiarlo.
- */
+// El id queda bloqueado al seleccionar un recurso existente porque RecursoController no permite cambiarlo.
 public class RecursoView extends JPanel implements Refrescable {
 
     private final RecursoController controller;
@@ -160,7 +155,6 @@ public class RecursoView extends JPanel implements Refrescable {
         return scroll;
     }
 
-    /** Recarga combos de categorías (conservando la selección) y la tabla. */
     @Override
     public void refrescar() {
         Categoria filtro = (Categoria) cbCategoriaFiltro.getSelectedItem();

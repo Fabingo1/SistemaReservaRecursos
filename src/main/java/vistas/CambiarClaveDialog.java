@@ -6,12 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 
-/**
- * Diálogo de cambio de clave (parte de la funcionalidad 1 del enunciado:
- * "También podrán cambiar su clave en cualquier momento"). Se abre desde
- * LoginView usando el id que el usuario ya escribió ahí, por lo que aquí
- * solo se piden las claves.
- */
+// El id llega ya escrito desde LoginView, por lo que aquí solo se piden las claves.
 public class CambiarClaveDialog extends JDialog {
 
     private final LoginController controller;

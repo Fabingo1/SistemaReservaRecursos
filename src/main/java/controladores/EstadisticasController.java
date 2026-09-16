@@ -16,13 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Controlador de la funcionalidad 8 del enunciado: "Estadísticas". Calcula,
- * para un rango de fechas [desde, hasta]:
- *  - la cantidad de reservas por categoría de recurso, y
- *  - la cantidad de actividades programadas en CADA semana del período
- *    (incluyendo las semanas con 0 actividades, como pide el enunciado).
- */
+// Las semanas sin actividades igual aparecen en el resultado, con conteo 0.
 public class EstadisticasController {
 
     private final String rutaReservas;
@@ -40,11 +34,7 @@ public class EstadisticasController {
         this.pdfService = new PDFService();
     }
 
-    /**
-     * Cantidad de veces que se reservó cada categoría de recurso dentro del
-     * período [desde, hasta], ordenado de mayor a menor cantidad. Se agrupa
-     * por id de categoría (dos categorías con igual descripción no se mezclan).
-     */
+    /** Se agrupa por id de categoría, no por descripción, para no mezclar dos categorías homónimas. */
     public Map<String, Integer> estadisticasRecursos(Date desde, Date hasta) throws IOException {
         validarRango(desde, hasta);
         Map<String, Integer> conteoPorId = new HashMap<>();
@@ -71,11 +61,6 @@ public class EstadisticasController {
         return resultado;
     }
 
-    /**
-     * Cantidad de actividades (reservas activas) en cada semana (lunes a
-     * domingo) comprendida en [desde, hasta], en orden cronológico.
-     * Las semanas sin actividades aparecen con 0.
-     */
     public Map<String, Integer> estadisticasActividades(Date desde, Date hasta) throws IOException {
         validarRango(desde, hasta);
 
@@ -101,7 +86,6 @@ public class EstadisticasController {
         return resultado;
     }
 
-    /** Reporte PDF de una tabla de estadísticas (etiqueta, cantidad). */
     public void generarReportePDF(String titulo, String nombreColumna, Map<String, Integer> datos,
                                   String rutaSalida) throws IOException {
         List<Object[]> filas = new ArrayList<>();

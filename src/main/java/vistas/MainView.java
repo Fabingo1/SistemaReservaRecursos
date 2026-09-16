@@ -8,12 +8,8 @@ import modelo.Usuario;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * Ventana principal. Muestra las pestañas según el rol del usuario:
- *  - Administrador: Funcionarios, Categorías, Recursos (funcionalidades 3, 4, 5)
- *  - Funcionario:   Reservas (funcionalidad 2)
- *  - Ambos:         Calendarización, Actividades, Estadísticas (6, 7, 8)
- */
+// Muestra las pestañas según el rol: Administrador ve Funcionarios/Categorías/Recursos,
+// Funcionario ve Reservas; ambos comparten Calendarización, Actividades y Estadísticas.
 public class MainView extends JFrame {
 
     public MainView(Usuario usuario) {
@@ -28,7 +24,6 @@ public class MainView extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // Barra superior: cambiar clave "en cualquier momento" (funcionalidad 1) y cerrar sesión
         JPanel barra = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         barra.add(new JLabel("Usuario: " + usuario.getId() + "  |  Rol: " + rol + "   "));
         JButton btnClave = new JButton("🔑 Cambiar clave");
@@ -67,8 +62,7 @@ public class MainView extends JFrame {
                 if (i == seleccionada) {
                     tabs.setBackgroundAt(i, base);
                 } else {
-                    // No seleccionada: el mismo color, atenuado hacia el gris de fondo,
-                    // para que la pestaña activa sea la única que resalte de verdad.
+                    // Atenuado hacia el gris de fondo para que solo la pestaña activa resalte.
                     int r = (base.getRed() + 60 * 2) / 3;
                     int g = (base.getGreen() + 63 * 2) / 3;
                     int b = (base.getBlue() + 68 * 2) / 3;
@@ -78,8 +72,7 @@ public class MainView extends JFrame {
         };
         actualizarColoresTabs.run();
 
-        // Al cambiar de pestaña se recargan los datos (p. ej. una categoría nueva
-        // aparece en Recursos sin reiniciar la aplicación), y se recalculan los colores.
+        // Al cambiar de pestaña se refrescan sus datos (ej. una categoría nueva ya aparece en Recursos).
         tabs.addChangeListener(e -> {
             actualizarColoresTabs.run();
             Component seleccionada = tabs.getSelectedComponent();

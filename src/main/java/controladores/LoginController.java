@@ -27,10 +27,6 @@ public class LoginController {
         this.gestorXML = new GestorXML();
     }
 
-    /**
-     * Intenta autenticar contra administradores.xml y funcionarios.xml.
-     * Retorna el Usuario autenticado, o null si no hay coincidencia.
-     */
     public Usuario autenticar(String id, String clave) throws IOException {
         if (id == null || clave == null) {
             return null;
@@ -53,12 +49,6 @@ public class LoginController {
         return null; // no encontrado / clave incorrecta
     }
 
-    /**
-     * Cambia la clave de un usuario (administrador o funcionario) validando
-     * primero la clave actual. Persiste el cambio de una vez en el XML
-     * correspondiente. Reutiliza Usuario.cambiarClave(), que valida que la
-     * clave nueva no esté vacía.
-     */
     public void cambiarClave(String id, String claveActual, String claveNueva) throws IOException {
         if (claveNueva == null || claveNueva.isBlank()) {
             throw new IllegalArgumentException("La clave nueva no puede estar vacía.");

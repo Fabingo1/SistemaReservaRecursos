@@ -26,11 +26,7 @@ public class CategoriaController {
         this(RUTA_CATEGORIAS_POR_DEFECTO);
     }
 
-    /**
-     * Permite inyectar una ruta distinta a la de producción. Pensado para
-     * pruebas unitarias con @TempDir, así no se escribe sobre el
-     * data/categorias.xml real del proyecto al correr los tests.
-     */
+    /** Ruta inyectable para pruebas con @TempDir, sin tocar el data/categorias.xml real. */
     public CategoriaController(String rutaCategorias) {
         this.rutaCategorias = rutaCategorias;
         // recursos.xml y reservas.xml se buscan en la MISMA carpeta que categorias.xml
@@ -40,15 +36,11 @@ public class CategoriaController {
         this.pdfService = new PDFService();
     }
 
-    /** Consulta: todas las categorías registradas. */
     public List<Categoria> listar() throws IOException {
         return gestorXML.cargarDatos(rutaCategorias);
     }
 
-    /**
-     * Búsqueda por descripción (parcial, sin distinguir mayúsculas/minúsculas),
-     * tal como lo pide el enunciado. Si el texto viene vacío, retorna todas.
-     */
+    /** Búsqueda parcial, sin distinguir mayúsculas; texto vacío retorna todas. */
     public List<Categoria> buscarPorDescripcion(String texto) throws IOException {
         List<Categoria> todas = listar();
         if (texto == null || texto.isBlank()) {
@@ -64,7 +56,6 @@ public class CategoriaController {
         return resultado;
     }
 
-    /** Útil para que RecursoController valide contra una categoría concreta. */
     public Categoria buscarPorId(String id) throws IOException {
         for (Categoria c : listar()) {
             if (c.getId().equals(id)) {
@@ -74,10 +65,6 @@ public class CategoriaController {
         return null;
     }
 
-    /**
-     * Inclusión. El id es autogenerado (así lo exige el enunciado), la
-     * descripción la da el administrador.
-     */
     public Categoria crear(String descripcion) throws IOException {
         validarDescripcion(descripcion);
         List<Categoria> categorias = listar();
@@ -92,7 +79,6 @@ public class CategoriaController {
         return nueva;
     }
 
-    /** Modificación: el id nunca cambia, solo la descripción. */
     public void modificar(String id, String nuevaDescripcion) throws IOException {
         validarDescripcion(nuevaDescripcion);
         List<Categoria> categorias = listar();
@@ -115,7 +101,6 @@ public class CategoriaController {
         propagarDescripcion(id, nuevaDescripcion.trim());
     }
 
-    /** Borrado por id. */
     public void borrar(String id) throws IOException {
         List<Categoria> categorias = listar();
         validarSinRecursos(id);
@@ -128,10 +113,6 @@ public class CategoriaController {
         gestorXML.guardarDatos(categorias, rutaCategorias);
     }
 
-    /**
-     * Reporte en PDF, requerido por el enunciado para todas las
-     * funcionalidades. Reutiliza el PDFService genérico del equipo.
-     */
     public void generarReportePDF(List<Categoria> categorias, String rutaSalida) throws IOException {
         List<Object[]> filas = new ArrayList<>();
         for (Categoria c : categorias) {
@@ -166,11 +147,7 @@ public class CategoriaController {
         }
     }
 
-    /**
-     * XMLEncoder guarda copias de la categoría dentro de recursos.xml y
-     * reservas.xml; al cambiar la descripción se actualizan esas copias para
-     * que Recursos, Calendarización y Estadísticas muestren el texto nuevo.
-     */
+    /** XMLEncoder guarda copias de la categoría en recursos.xml y reservas.xml; hay que actualizarlas también. */
     private void propagarDescripcion(String idCategoria, String nuevaDescripcion) throws IOException {
         List<Recurso> recursos = gestorXML.cargarDatos(rutaRecursos);
         boolean cambioRecursos = false;

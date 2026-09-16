@@ -13,20 +13,6 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Vista de la funcionalidad 8: "Estadísticas". Muestra, lado a lado (tal
- * como en el ejemplo de pantalla del enunciado), dos secciones
- * independientes:
- *  - Recursos: cantidad de reservas por categoría de recurso en un período.
- *  - Actividades: cantidad de actividades programadas por semana en un período.
- *
- * El gráfico de barras se dibuja con Java2D (BarChartPanel interno) para no
- * agregar una dependencia externa de gráficos al proyecto.
- *
- * Se implementa como JPanel para poder incrustarse como pestaña tanto en la
- * vista de Funcionario como en la de Administrador (ambos roles pueden usar
- * esta funcionalidad según el enunciado).
- */
 public class EstadisticasView extends JPanel {
 
     private final EstadisticasController controller;
@@ -46,8 +32,7 @@ public class EstadisticasView extends JPanel {
     public EstadisticasView() {
         this.controller = new EstadisticasController();
 
-        // Layout de dos columnas (Recursos | Actividades) visibles a la vez,
-        // igual que en el ejemplo de pantalla del enunciado, en vez de pestañas.
+        // Dos columnas (Recursos | Actividades) visibles a la vez, en vez de pestañas.
         setLayout(new GridLayout(1, 2, 10, 0));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -249,7 +234,6 @@ public class EstadisticasView extends JPanel {
     // Utilidades
     // ---------------------------------------------------------------
 
-    /** Abre un diálogo "Guardar como" y retorna la ruta elegida (o null si se canceló). */
     private String elegirRutaPdf(String nombreSugerido) {
         JFileChooser selector = new JFileChooser();
         selector.setSelectedFile(new File(nombreSugerido));
@@ -273,7 +257,7 @@ public class EstadisticasView extends JPanel {
         return spinner;
     }
 
-    /** Panel simple de gráfico de barras dibujado con Java2D (sin dependencias externas). */
+    // Java2D en vez de una librería de gráficos externa.
     private static class BarChartPanel extends JPanel {
         private Map<String, Integer> datos = new LinkedHashMap<>();
 
