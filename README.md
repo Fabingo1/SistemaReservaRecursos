@@ -1,9 +1,13 @@
 \# Sistema de Reserva de Recursos
 
+## Estudiantes:
+
+- Luis Fabiano Arroyo Castillo
+- Steven Gamboa Ledezma
+- Minor Castillo Loria
 
 
 \## Usuarios de prueba
-
 
 
 Al ejecutar el programa por primera vez, si la carpeta `data/` está vacía, se generan automáticamente:
