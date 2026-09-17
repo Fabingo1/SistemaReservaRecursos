@@ -120,7 +120,6 @@ public class ReservaController {
         gestorXML.guardarDatos(todas, rutaReservas);
     }
 
-    /** Versión sin validación de dueño (se conserva por compatibilidad). */
     public void cancelarReserva(String idReserva) throws IOException {
         cancelarReserva(idReserva, null);
     }
@@ -156,7 +155,6 @@ public class ReservaController {
     }
 
     // Package-private para que las pruebas unitarias accedan directo.
-
     Recurso buscarRecursoDisponible(Categoria categoria, List<Recurso> todosLosRecursos,
                                     List<Reserva> todasLasReservas, Date fecha, Date horaInicio, Date horaFin) {
         for (Recurso recurso : todosLosRecursos) {

@@ -147,7 +147,7 @@ public class CategoriaController {
         }
     }
 
-    /** XMLEncoder guarda copias de la categoría en recursos.xml y reservas.xml; hay que actualizarlas también. */
+    /** XMLEncoder guarda copias de la categoría en recursos.xml y reservas.xml;*/
     private void propagarDescripcion(String idCategoria, String nuevaDescripcion) throws IOException {
         List<Recurso> recursos = gestorXML.cargarDatos(rutaRecursos);
         boolean cambioRecursos = false;
@@ -192,11 +192,7 @@ public class CategoriaController {
         }
     }
 
-    /**
-     * Genera el siguiente id disponible con formato CAT-XXX, tomando el
-     * número más alto ya usado. Ignora ids con formato distinto (por
-     * ejemplo, los datos de prueba "cat1", "cat2") en vez de fallar.
-     */
+    /** Genera el siguiente id disponible */
     private String generarId(List<Categoria> existentes) {
         int max = 0;
         for (Categoria c : existentes) {
@@ -206,7 +202,6 @@ public class CategoriaController {
                     int numero = Integer.parseInt(soloNumero);
                     max = Math.max(max, numero);
                 } catch (NumberFormatException ignored) {
-                    // id con formato no numérico; no participa en el cálculo
                 }
             }
         }

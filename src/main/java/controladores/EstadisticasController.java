@@ -34,7 +34,7 @@ public class EstadisticasController {
         this.pdfService = new PDFService();
     }
 
-    /** Se agrupa por id de categoría, no por descripción, para no mezclar dos categorías homónimas. */
+    /** Se agrupa por id de categoría, no por descripción, para no mezclar dos categorías homónimas */
     public Map<String, Integer> estadisticasRecursos(Date desde, Date hasta) throws IOException {
         validarRango(desde, hasta);
         Map<String, Integer> conteoPorId = new HashMap<>();

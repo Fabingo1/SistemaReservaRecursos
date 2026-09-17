@@ -99,8 +99,7 @@ public class Reserva {
                 && this.funcionario.getId().equals(funcionario.getId());
     }
 
-    // Nombres sin prefijo "get" a propósito: así XMLEncoder no los trata como propiedades a persistir.
-
+    // Nombres sin prefijo "get" porque así XMLEncoder no los trata como propiedades a persistir
     public int minutoInicio() {
         return minutosDelDia(horaInicio);
     }
@@ -143,8 +142,7 @@ public class Reserva {
         return minutoInicio() < minutosDelDia(fin) && minutosDelDia(inicio) < minutoFin();
     }
 
-    // ---------------- utilidades estáticas reutilizables ----------------
-
+    //utilidades estáticas reutilizables
     public static int minutosDelDia(Date hora) {
         if (hora == null) return 0;
         Calendar cal = Calendar.getInstance();

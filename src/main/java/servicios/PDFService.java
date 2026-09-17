@@ -14,7 +14,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-// Servicio genérico de tabla -> PDF, reutilizado por todas las funcionalidades del sistema.
 public class PDFService {
 
     private static final float MARGEN = 40f;
@@ -127,7 +126,7 @@ public class PDFService {
         return y - ALTO_FILA;
     }
 
-    /** Helvetica (PDFBox) falla con tildes/ñ fuera de su codificación; se normalizan antes de escribir. */
+    /** Helvetica (PDFBox) falla con tildes o ñ fuera de su codificación, se normalizan antes de escribir */
     private String limpiar(String texto) {
         if (texto == null) return "";
         String limpio = texto
@@ -158,7 +157,7 @@ public class PDFService {
     }
 
     public static void main(String[] args) throws IOException {
-        // Prueba manual rápida: genera data/reporte_prueba.pdf
+        // Prueba manual rápida
         PDFService service = new PDFService();
         List<Object[]> filas = List.of(
                 new Object[]{"Sala de Juntas", 5},

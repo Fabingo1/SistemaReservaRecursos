@@ -9,7 +9,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-// Main la llama al arrancar si administradores.xml aún no existe (repo recién clonado, data/*.xml está en .gitignore).
+// Main la llama al arrancar si administradores.xml aún no existe
 // Usuarios creados: admin1/admin1 (administrador), func1/func1 y func2/func2 (funcionarios).
 public class GenerarDatosPrueba {
 

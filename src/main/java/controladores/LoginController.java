@@ -46,7 +46,7 @@ public class LoginController {
             }
         }
 
-        return null; // no encontrado / clave incorrecta
+        return null;
     }
 
     public void cambiarClave(String id, String claveActual, String claveNueva) throws IOException {

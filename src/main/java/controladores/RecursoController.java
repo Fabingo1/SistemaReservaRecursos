@@ -94,7 +94,7 @@ public class RecursoController {
 
         Recurso nuevo = new Recurso();
         nuevo.setId(id.trim());
-        nuevo.setCategoria(buscarCategoriaPorId(categoria.getId())); // copia actualizada desde el XML
+        nuevo.setCategoria(buscarCategoriaPorId(categoria.getId()));
         nuevo.setDescripcion(descripcion.trim());
 
         recursos.add(nuevo);

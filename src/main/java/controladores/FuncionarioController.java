@@ -10,8 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-// El id lo asigna el administrador (no se autogenera). La clave inicial queda igual al id;
-// cambiarla es responsabilidad de LoginController, no de este controlador.
+// El id lo asigna el administrador (no se autogenera). La clave inicial queda igual al id
 public class FuncionarioController {
 
     private static final String RUTA_FUNCIONARIOS_POR_DEFECTO = "data/funcionarios.xml";
@@ -40,7 +39,7 @@ public class FuncionarioController {
         return gestorXML.cargarDatos(rutaFuncionarios);
     }
 
-    /** Búsqueda parcial por id o nombre, sin distinguir mayúsculas; texto vacío retorna todos. */
+    /** Búsqueda parcial por id o nombre, sin distinguir mayúsculas */
     public List<Funcionario> buscar(String texto) throws IOException {
         List<Funcionario> todos = listar();
         if (texto == null || texto.isBlank()) {
@@ -82,7 +81,7 @@ public class FuncionarioController {
 
         Funcionario nuevo = new Funcionario();
         nuevo.setId(id.trim());
-        nuevo.setClave(id.trim()); // clave inicial = id, se cambia luego desde "Cambiar clave"
+        nuevo.setClave(id.trim());
         nuevo.setNombre(nombre.trim());
         nuevo.setTelefono(telefono.trim());
 
@@ -91,7 +90,6 @@ public class FuncionarioController {
         return nuevo;
     }
 
-    /** El id y la clave no se tocan aquí: la clave se administra desde "Cambiar clave", no desde este CRUD. */
     public void modificar(String id, String nuevoNombre, String nuevoTelefono) throws IOException {
         validarDatos(id, nuevoNombre, nuevoTelefono);
         List<Funcionario> funcionarios = listar();
