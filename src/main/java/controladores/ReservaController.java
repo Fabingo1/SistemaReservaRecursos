@@ -53,7 +53,7 @@ public class ReservaController {
         return misReservas;
     }
 
-    /** Lanza IllegalArgumentException si los datos son inválidos; si falta disponibilidad, retorna un ResultadoReserva de fallo. */
+
     public ResultadoReserva crearReserva(Funcionario funcionario, String actividad, Date fecha,
                                          Date horaInicio, Date horaFin,
                                          List<Categoria> categoriasSolicitadas) throws IOException {
@@ -154,7 +154,6 @@ public class ReservaController {
         return sb.toString();
     }
 
-    // Package-private para que las pruebas unitarias accedan directo.
     Recurso buscarRecursoDisponible(Categoria categoria, List<Recurso> todosLosRecursos,
                                     List<Reserva> todasLasReservas, Date fecha, Date horaInicio, Date horaFin) {
         for (Recurso recurso : todosLosRecursos) {
@@ -218,7 +217,6 @@ public class ReservaController {
         }
     }
 
-    /** Si la misma categoría viene dos veces, se toma una sola vez. */
     private List<Categoria> quitarRepetidas(List<Categoria> categorias) {
         Set<String> vistos = new HashSet<>();
         List<Categoria> unicas = new ArrayList<>();
@@ -233,7 +231,6 @@ public class ReservaController {
         return unicas;
     }
 
-    /** Evita guardar la clave del funcionario dentro de reservas.xml. */
     private Funcionario copiaSinClave(Funcionario f) {
         Funcionario copia = new Funcionario();
         copia.setId(f.getId());

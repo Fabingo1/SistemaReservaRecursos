@@ -27,14 +27,12 @@ public class EstadisticasController {
         this("data");
     }
 
-    /** Permite usar otra carpeta de datos (pruebas con @TempDir). */
     public EstadisticasController(String carpetaDatos) {
         this.rutaReservas = new File(carpetaDatos, "reservas.xml").getPath();
         this.gestorXML = new GestorXML();
         this.pdfService = new PDFService();
     }
 
-    /** Se agrupa por id de categoría, no por descripción, para no mezclar dos categorías homónimas */
     public Map<String, Integer> estadisticasRecursos(Date desde, Date hasta) throws IOException {
         validarRango(desde, hasta);
         Map<String, Integer> conteoPorId = new HashMap<>();

@@ -87,7 +87,7 @@ public class CalendarizacionView extends JPanel implements Refrescable {
         return panel;
     }
 
-    /** Recarga las categorías conservando la seleccionada. */
+
     @Override
     public void refrescar() {
         Categoria actual = (Categoria) cbCategoria.getSelectedItem();
@@ -235,7 +235,7 @@ public class CalendarizacionView extends JPanel implements Refrescable {
         }
     }
 
-    // Para probar esta vista sola, sin pasar por LoginView
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Prueba Calendarización");

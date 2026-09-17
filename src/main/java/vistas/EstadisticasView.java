@@ -340,7 +340,7 @@ public class EstadisticasView extends JPanel {
         }
     }
 
-    /** Prueba manual independiente de esta vista (sin necesidad de pasar por el login). */
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Estadísticas - Prueba");

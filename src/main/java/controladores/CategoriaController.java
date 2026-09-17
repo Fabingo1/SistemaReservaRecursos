@@ -26,7 +26,7 @@ public class CategoriaController {
         this(RUTA_CATEGORIAS_POR_DEFECTO);
     }
 
-    /** Ruta inyectable para pruebas con @TempDir, sin tocar el data/categorias.xml real. */
+
     public CategoriaController(String rutaCategorias) {
         this.rutaCategorias = rutaCategorias;
         // recursos.xml y reservas.xml se buscan en la MISMA carpeta que categorias.xml
@@ -40,7 +40,6 @@ public class CategoriaController {
         return gestorXML.cargarDatos(rutaCategorias);
     }
 
-    /** Búsqueda parcial, sin distinguir mayúsculas; texto vacío retorna todas. */
     public List<Categoria> buscarPorDescripcion(String texto) throws IOException {
         List<Categoria> todas = listar();
         if (texto == null || texto.isBlank()) {
@@ -121,7 +120,7 @@ public class CategoriaController {
         pdfService.generarReporte("Listado de Categorías", new String[]{"Id", "Descripción"}, filas, rutaSalida);
     }
 
-    /** No se permiten dos categorías con la misma descripción (sin importar mayúsculas). */
+
     private void validarDescripcionUnica(List<Categoria> categorias, String descripcion, String idExcluido) {
         String buscada = descripcion.trim();
         for (Categoria c : categorias) {
@@ -132,7 +131,6 @@ public class CategoriaController {
         }
     }
 
-    /** Evita dejar recursos "huérfanos" apuntando a una categoría borrada. */
     private void validarSinRecursos(String idCategoria) throws IOException {
         List<Recurso> recursos = gestorXML.cargarDatos(rutaRecursos);
         int cantidad = 0;
@@ -147,7 +145,6 @@ public class CategoriaController {
         }
     }
 
-    /** XMLEncoder guarda copias de la categoría en recursos.xml y reservas.xml;*/
     private void propagarDescripcion(String idCategoria, String nuevaDescripcion) throws IOException {
         List<Recurso> recursos = gestorXML.cargarDatos(rutaRecursos);
         boolean cambioRecursos = false;
@@ -192,7 +189,6 @@ public class CategoriaController {
         }
     }
 
-    /** Genera el siguiente id disponible */
     private String generarId(List<Categoria> existentes) {
         int max = 0;
         for (Categoria c : existentes) {

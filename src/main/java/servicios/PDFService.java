@@ -21,7 +21,6 @@ public class PDFService {
     private static final float TAMANO_TITULO = 16f;
     private static final float TAMANO_TEXTO = 10f;
 
-    /** Pagina automáticamente cuando las filas no caben en una sola página carta. */
     public void generarReporte(String titulo, String[] columnas, List<Object[]> filas, String rutaSalida)
             throws IOException {
 
@@ -126,7 +125,6 @@ public class PDFService {
         return y - ALTO_FILA;
     }
 
-    /** Helvetica (PDFBox) falla con tildes o ñ fuera de su codificación, se normalizan antes de escribir */
     private String limpiar(String texto) {
         if (texto == null) return "";
         String limpio = texto

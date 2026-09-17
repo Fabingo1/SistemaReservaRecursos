@@ -44,7 +44,6 @@ public class RecursoController {
         return gestorXML.cargarDatos(rutaRecursos);
     }
 
-    /** Categoría y texto son independientes: cualquiera puede venir nulo/vacío para no aplicar ese filtro. */
     public List<Recurso> buscar(Categoria categoria, String textoDescripcion) throws IOException {
         List<Recurso> base = filtrarPorCategoria(categoria);
 
@@ -163,7 +162,7 @@ public class RecursoController {
         }
     }
 
-    /** true si el recurso está asignado a alguna reserva activa que aún no terminó. */
+    // true si el recurso está asignado a alguna reserva activa que aún no terminó.
     private boolean tieneReservasFuturas(String idRecurso) throws IOException {
         List<Reserva> reservas = gestorXML.cargarDatos(rutaReservas);
         for (Reserva r : reservas) {
@@ -177,7 +176,7 @@ public class RecursoController {
         return false;
     }
 
-    /** Actualiza la descripción del recurso en las copias guardadas dentro de reservas.xml. */
+
     private void propagarDescripcion(String idRecurso, String nuevaDescripcion) throws IOException {
         List<Reserva> reservas = gestorXML.cargarDatos(rutaReservas);
         boolean cambio = false;

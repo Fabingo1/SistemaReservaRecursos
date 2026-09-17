@@ -72,7 +72,6 @@ public class MainView extends JFrame {
         };
         actualizarColoresTabs.run();
 
-        // Al cambiar de pestaña se refrescan sus datos (ej. una categoría nueva ya aparece en Recursos).
         tabs.addChangeListener(e -> {
             actualizarColoresTabs.run();
             Component seleccionada = tabs.getSelectedComponent();

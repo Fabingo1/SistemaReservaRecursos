@@ -29,7 +29,6 @@ public class CategoriaView extends JPanel implements Refrescable {
     private JTable tablaListado;
     private DefaultTableModel modeloTabla;
 
-    /** Id de la categoría actualmente seleccionada en la tabla, o null si se está creando una nueva. */
     private String idSeleccionado;
 
     public CategoriaView() {
@@ -259,7 +258,7 @@ public class CategoriaView extends JPanel implements Refrescable {
         JOptionPane.showMessageDialog(this, ex.getMessage(), titulo, JOptionPane.ERROR_MESSAGE);
     }
 
-    // Para probar esta vista sola, sin pasar por LoginView
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Prueba Categorías");

@@ -33,10 +33,10 @@ public class FuncionarioView extends JPanel implements Refrescable {
     private JTable tablaListado;
     private DefaultTableModel modeloTabla;
 
-    /** Funcionarios actualmente mostrados en la tabla, en el mismo orden que las filas. */
+
     private List<Funcionario> resultadosActuales = new ArrayList<>();
 
-    /** Id del funcionario seleccionado en la tabla, o null si se está creando uno nuevo. */
+
     private String idSeleccionado;
 
     public FuncionarioView() {
@@ -291,7 +291,6 @@ public class FuncionarioView extends JPanel implements Refrescable {
         JOptionPane.showMessageDialog(this, ex.getMessage(), titulo, JOptionPane.ERROR_MESSAGE);
     }
 
-    // Para probar esta vista sola, sin pasar por LoginView
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Prueba Funcionarios");

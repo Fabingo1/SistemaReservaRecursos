@@ -218,7 +218,7 @@ public class ActividadesView extends JPanel implements Refrescable {
         }
     }
 
-    /** Permite que las celdas muestren texto HTML (multilínea) y se alineen arriba. */
+
     private static class CeldaActividadRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
@@ -229,7 +229,7 @@ public class ActividadesView extends JPanel implements Refrescable {
         }
     }
 
-    /** Prueba manual independiente de esta vista (sin necesidad de pasar por el login). */
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Actividades - Prueba");

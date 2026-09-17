@@ -26,7 +26,6 @@ public class FuncionarioController {
         this(RUTA_FUNCIONARIOS_POR_DEFECTO, RUTA_ADMINISTRADORES_POR_DEFECTO);
     }
 
-    /** Constructor con rutas inyectables, pensado para pruebas con @TempDir. */
     public FuncionarioController(String rutaFuncionarios, String rutaAdministradores) {
         this.rutaFuncionarios = rutaFuncionarios;
         this.rutaAdministradores = rutaAdministradores;
@@ -39,7 +38,6 @@ public class FuncionarioController {
         return gestorXML.cargarDatos(rutaFuncionarios);
     }
 
-    /** Búsqueda parcial por id o nombre, sin distinguir mayúsculas */
     public List<Funcionario> buscar(String texto) throws IOException {
         List<Funcionario> todos = listar();
         if (texto == null || texto.isBlank()) {
@@ -148,7 +146,7 @@ public class FuncionarioController {
         }
     }
 
-    /** true si el funcionario tiene reservas activas que aún no terminan. */
+
     private boolean tieneReservasFuturas(String idFuncionario) throws IOException {
         List<Reserva> reservas = gestorXML.cargarDatos(rutaReservas);
         for (Reserva r : reservas) {
@@ -160,7 +158,7 @@ public class FuncionarioController {
         return false;
     }
 
-    /** Actualiza nombre/teléfono en las copias del funcionario guardadas en reservas.xml. */
+
     private void propagarDatos(String idFuncionario, String nombre, String telefono) throws IOException {
         List<Reserva> reservas = gestorXML.cargarDatos(rutaReservas);
         boolean cambio = false;
